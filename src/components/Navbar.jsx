@@ -12,7 +12,7 @@ function Navbar() {
       <div className="mx-auto flex max-w-[1160px] items-center justify-between px-3 py-2 sm:px-8 sm:py-3">
         <div>
           <Link>
-          <div className="text-lg font-semibold text-[#1E3A8A]">MetroCSE Hub</div>
+            <div className="text-lg font-semibold text-[#1E3A8A]">MetroCSE Hub</div>
           </Link>
           <div className="mt-1 hidden text-sm text-[#475569] md:block">
             CSE Department, Metropolitan University

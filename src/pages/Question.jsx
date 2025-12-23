@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 const filters = {
-  batches: ['CSE 57', 'CSE 578', 'CSE 59', 'CSE 57', 'CSE 60', 'CSE 61', 'CSE 62', 'CSE 63', 'CSE 64'],
+  batches: ['CSE 57', 'CSE 57', 'CSE 59', 'CSE 57', 'CSE 60', 'CSE 61', 'CSE 62', 'CSE 63', 'CSE 64'],
   sections: ['Sec A', 'Sec B', 'Sec C', 'Sec D', 'Sec E', 'Sec F', 'Sec G', 'Sec H'],
   semesters: ['1.1', '1.2', '1.3', '2.1', '2.2', '2.3', '3.1', '3.2', '3.3', '4.1', '4.2', '4.3'],
   types: ['Final', 'CT'],
