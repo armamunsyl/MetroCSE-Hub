@@ -16,11 +16,11 @@ const router = createBrowserRouter([
         Component: Home,
       },
       {
-        path: 'all-batch',
+        path: '/all-batch',
         Component: AllBatch,
       },
       {
-        path: 'question',
+        path: '/question',
         Component: Question,
       },
     ],
