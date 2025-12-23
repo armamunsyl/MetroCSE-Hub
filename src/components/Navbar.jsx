@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -10,17 +11,19 @@ function Navbar() {
     >
       <div className="mx-auto flex max-w-[1160px] items-center justify-between px-3 py-2 sm:px-8 sm:py-3">
         <div>
+          <Link>
           <div className="text-lg font-semibold text-[#1E3A8A]">MetroCSE Hub</div>
+          </Link>
           <div className="mt-1 hidden text-sm text-[#475569] md:block">
             CSE Department, Metropolitan University
           </div>
         </div>
 
         <nav className="hidden items-center gap-4 text-sm font-semibold text-[#475569] md:flex">
-          <a href="#" className="whitespace-nowrap transition-colors hover:text-[#1E3A8A]">
+          <a href="/question" className="whitespace-nowrap transition-colors hover:text-[#1E3A8A]">
             Question Bank
           </a>
-          <a href="#" className="whitespace-nowrap transition-colors hover:text-[#1E3A8A]">
+          <a href="/tools" className="whitespace-nowrap transition-colors hover:text-[#1E3A8A]">
             Tools
           </a>
           <button
@@ -49,10 +52,10 @@ function Navbar() {
       {menuOpen && (
         <div className="border-t border-[#E5E7EB] bg-white px-6 pb-6 pt-4 text-sm font-semibold text-[#475569] shadow-[0_12px_24px_rgba(0,0,0,0.08)] md:hidden">
           <div className="grid gap-3">
-            <a href="#" className="rounded-xl px-3 py-2 transition hover:text-[#1E3A8A]">
+            <a href="/question" className="rounded-xl px-3 py-2 transition hover:text-[#1E3A8A]">
               Question Bank
             </a>
-            <a href="#" className="rounded-xl px-3 py-2 transition hover:text-[#1E3A8A]">
+            <a href="/tools" className="rounded-xl px-3 py-2 transition hover:text-[#1E3A8A]">
               Tools
             </a>
             <button

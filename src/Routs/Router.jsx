@@ -3,6 +3,7 @@ import Layout from '../Layout/Layout'
 import ErrorPage from '../components/ErrorPage'
 import Home from '../pages/Home'
 import AllBatch from '../pages/AllBatch'
+import Question from '../pages/Question'
 
 const router = createBrowserRouter([
   {
@@ -17,6 +18,10 @@ const router = createBrowserRouter([
       {
         path: 'all-batch',
         Component: AllBatch,
+      },
+      {
+        path: 'question',
+        Component: Question,
       },
     ],
   },
