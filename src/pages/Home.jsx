@@ -46,18 +46,18 @@ function Home() {
 
       <section className="mb-12 animate-fade-up" style={{ animationDelay: '0.26s' }}>
         <div className="mb-5">
-          <h2 className="text-2xl font-semibold text-[#1f2a63]">Question Bank</h2>
-          <p className="mt-2 text-sm text-[#5661a4]">
+          <h2 className="text-2xl font-semibold text-[#1E3A8A]">Question Bank</h2>
+          <p className="mt-2 text-sm text-[#475569]">
             Browse batch-wise to find class tests and finals faster.
           </p>
         </div>
         <BatchGrid batches={batches} />
       </section>
 
-      <section className="animate-fade-up" style={{ animationDelay: '0.32s' }}>
+      <section className="animate-fade-up bg-[#F8FAFC] pb-6" style={{ animationDelay: '0.32s' }}>
         <div className="mb-5">
-          <h2 className="text-2xl font-semibold text-[#1f2a63]">Quick Tools</h2>
-          <p className="mt-2 text-sm text-[#5661a4]">
+          <h2 className="text-2xl font-semibold text-[#1E3A8A]">Quick Tools</h2>
+          <p className="mt-2 text-sm text-[#475569]">
             Helpful academic utilities for your semester workflow.
           </p>
         </div>

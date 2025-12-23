@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 function BatchGrid({ batches }) {
   const mobileBatches = batches.slice(0, 6)
 
@@ -7,24 +8,24 @@ function BatchGrid({ batches }) {
         {mobileBatches.map((batch) => (
           <button
             key={batch.id}
-            className="relative flex flex-col items-center gap-2 rounded-2xl border border-[#e7ecff] bg-white px-3 py-4 text-center shadow-[0_10px_20px_rgba(36,44,98,0.08)] transition hover:-translate-y-1 hover:shadow-[0_18px_30px_rgba(36,44,98,0.12)] sm:flex-row sm:items-center sm:gap-4 sm:p-4 sm:text-left"
+            className="relative flex flex-col items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white px-3 py-4 text-center shadow-[0_8px_16px_rgba(0,0,0,0.06)] transition hover:-translate-y-1 hover:border-[#1E3A8A] hover:shadow-[0_12px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:gap-4 sm:p-4 sm:text-left"
             type="button"
           >
-            <div className="grid h-12 w-12 place-items-center rounded-xl bg-[#f1f4ff] sm:h-11 sm:w-11">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-white sm:h-11 sm:w-11">
               <svg viewBox="0 0 48 48" aria-hidden="true">
-                <rect x="8" y="6" width="28" height="36" rx="6" fill="#e7efff" />
-                <rect x="12" y="14" width="20" height="4" rx="2" fill="#7aa4ff" />
-                <rect x="12" y="22" width="16" height="4" rx="2" fill="#7aa4ff" />
-                <rect x="12" y="30" width="12" height="4" rx="2" fill="#7aa4ff" />
+                <rect x="8" y="6" width="28" height="36" rx="6" fill="#FFFFFF" />
+                <rect x="12" y="14" width="20" height="4" rx="2" fill="#1E3A8A" />
+                <rect x="12" y="22" width="16" height="4" rx="2" fill="#1E3A8A" />
+                <rect x="12" y="30" width="12" height="4" rx="2" fill="#1E3A8A" />
               </svg>
             </div>
             <div>
-              <div className="font-semibold text-[#1e265b]">Batch {batch.id}</div>
-              <div className="mt-1 text-xs text-[#5c66a5] sm:text-sm">
+              <div className="font-semibold text-[#0F172A]">Batch {batch.id}</div>
+              <div className="mt-1 text-xs text-[#475569] sm:text-sm">
                 {batch.questions} Questions
               </div>
             </div>
-            <span className="absolute right-3 top-3 rounded-lg bg-[#6d8cff] px-2 py-1 text-xs font-semibold text-white">
+            <span className="absolute right-3 top-3 rounded-lg bg-[#1E3A8A] px-2 py-1 text-xs font-semibold text-white">
               {batch.id}
             </span>
           </button>
@@ -32,36 +33,38 @@ function BatchGrid({ batches }) {
         {batches.slice(6).map((batch) => (
           <button
             key={batch.id}
-            className="relative hidden flex-col items-center gap-2 rounded-2xl border border-[#e7ecff] bg-white px-3 py-4 text-center shadow-[0_10px_20px_rgba(36,44,98,0.08)] transition hover:-translate-y-1 hover:shadow-[0_18px_30px_rgba(36,44,98,0.12)] sm:flex sm:flex-row sm:items-center sm:gap-4 sm:p-4 sm:text-left"
+            className="relative hidden flex-col items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white px-3 py-4 text-center shadow-[0_8px_16px_rgba(0,0,0,0.06)] transition hover:-translate-y-1 hover:border-[#1E3A8A] hover:shadow-[0_12px_20px_rgba(0,0,0,0.08)] sm:flex sm:flex-row sm:items-center sm:gap-4 sm:p-4 sm:text-left"
             type="button"
           >
-            <div className="grid h-12 w-12 place-items-center rounded-xl bg-[#f1f4ff] sm:h-11 sm:w-11">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-white sm:h-11 sm:w-11">
               <svg viewBox="0 0 48 48" aria-hidden="true">
-                <rect x="8" y="6" width="28" height="36" rx="6" fill="#e7efff" />
-                <rect x="12" y="14" width="20" height="4" rx="2" fill="#7aa4ff" />
-                <rect x="12" y="22" width="16" height="4" rx="2" fill="#7aa4ff" />
-                <rect x="12" y="30" width="12" height="4" rx="2" fill="#7aa4ff" />
+                <rect x="8" y="6" width="28" height="36" rx="6" fill="#FFFFFF" />
+                <rect x="12" y="14" width="20" height="4" rx="2" fill="#1E3A8A" />
+                <rect x="12" y="22" width="16" height="4" rx="2" fill="#1E3A8A" />
+                <rect x="12" y="30" width="12" height="4" rx="2" fill="#1E3A8A" />
               </svg>
             </div>
             <div>
-              <div className="font-semibold text-[#1e265b]">Batch {batch.id}</div>
-              <div className="mt-1 text-xs text-[#5c66a5] sm:text-sm">
+              <div className="font-semibold text-[#0F172A]">Batch {batch.id}</div>
+              <div className="mt-1 text-xs text-[#475569] sm:text-sm">
                 {batch.questions} Questions
               </div>
             </div>
-            <span className="absolute right-3 top-3 rounded-lg bg-[#6d8cff] px-2 py-1 text-xs font-semibold text-white">
+            <span className="absolute right-3 top-3 rounded-lg bg-[#1E3A8A] px-2 py-1 text-xs font-semibold text-white">
               {batch.id}
             </span>
           </button>
         ))}
       </div>
       <div className="mt-4 flex justify-center sm:hidden">
-        <button
-          type="button"
-          className="rounded-full border border-[#d7defa] bg-white px-6 py-2 text-sm font-semibold text-[#3f4aa5] shadow-[0_12px_24px_rgba(60,84,190,0.2)]"
-        >
-          See More
-        </button>
+        <Link to={"/all-batch"}>
+          <button
+            type="button"
+            className="rounded-full border border-[#1E3A8A] bg-white px-6 py-2 text-sm font-semibold text-[#1E3A8A] shadow-[0_8px_16px_rgba(0,0,0,0.08)]"
+          >
+            See More
+          </button>
+        </Link>
       </div>
     </div>
   )

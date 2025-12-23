@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import Layout from '../Layout/Layout'
 import ErrorPage from '../components/ErrorPage'
 import Home from '../pages/Home'
+import AllBatch from '../pages/AllBatch'
 
 const router = createBrowserRouter([
   {
@@ -12,6 +13,10 @@ const router = createBrowserRouter([
       {
         index: true,
         Component: Home,
+      },
+      {
+        path: 'all-batch',
+        Component: AllBatch,
       },
     ],
   },
