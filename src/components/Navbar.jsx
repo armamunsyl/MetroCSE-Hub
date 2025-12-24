@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -11,7 +11,7 @@ function Navbar() {
     >
       <div className="mx-auto flex max-w-[1160px] items-center justify-between px-3 py-2 sm:px-8 sm:py-3">
         <div>
-          <Link>
+          <Link to="/">
             <div className="text-lg font-semibold text-[#1E3A8A]">MetroCSE Hub</div>
           </Link>
           <div className="mt-1 hidden text-sm text-[#475569] md:block">
@@ -20,18 +20,69 @@ function Navbar() {
         </div>
 
         <nav className="hidden items-center gap-4 text-sm font-semibold text-[#475569] md:flex">
-          <a href="/question" className="whitespace-nowrap transition-colors hover:text-[#1E3A8A]">
-            Question Bank
-          </a>
-          <a href="/tools" className="whitespace-nowrap transition-colors hover:text-[#1E3A8A]">
-            Tools
-          </a>
-          <button
-            className="rounded-xl bg-[#1E3A8A] px-5 py-2.5 text-white shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:brightness-90"
-            type="button"
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              [
+                'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
+                isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+              ].join(' ')
+            }
           >
-            Login
-          </button>
+            Home
+          </NavLink>
+          <NavLink
+            to="/tools"
+            className={({ isActive }) =>
+              [
+                'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
+                isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+              ].join(' ')
+            }
+          >
+            Tools
+          </NavLink>
+          <NavLink
+            to="/question"
+            className={({ isActive }) =>
+              [
+                'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
+                isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+              ].join(' ')
+            }
+          >
+            Question Bank
+          </NavLink>
+          <NavLink
+            to="/notice"
+            className={({ isActive }) =>
+              [
+                'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
+                isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+              ].join(' ')
+            }
+          >
+            Notice
+          </NavLink>
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              [
+                'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
+                isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+              ].join(' ')
+            }
+          >
+            Dashboard
+          </NavLink>
+          <Link to={"/login"} >
+            <button
+              className="rounded-xl bg-[#1E3A8A] px-5 py-2.5 text-left text-white shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:brightness-90"
+              type="button"
+            >
+              Login
+            </button>
+          </Link>
         </nav>
 
         <button
@@ -52,18 +103,36 @@ function Navbar() {
       {menuOpen && (
         <div className="border-t border-[#E5E7EB] bg-white px-6 pb-6 pt-4 text-sm font-semibold text-[#475569] shadow-[0_12px_24px_rgba(0,0,0,0.08)] md:hidden">
           <div className="grid gap-3">
-            <a href="/question" className="rounded-xl px-3 py-2 transition hover:text-[#1E3A8A]">
-              Question Bank
-            </a>
-            <a href="/tools" className="rounded-xl px-3 py-2 transition hover:text-[#1E3A8A]">
-              Tools
-            </a>
-            <button
-              className="rounded-xl bg-[#1E3A8A] px-5 py-2.5 text-left text-white shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:brightness-90"
-              type="button"
+            <NavLink
+              to="/question"
+              className={({ isActive }) =>
+                [
+                  'rounded-xl px-3 py-2 transition hover:text-[#1E3A8A]',
+                  isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+                ].join(' ')
+              }
             >
-              Login
-            </button>
+              Question Bank
+            </NavLink>
+            <NavLink
+              to="/tools"
+              className={({ isActive }) =>
+                [
+                  'rounded-xl px-3 py-2 transition hover:text-[#1E3A8A]',
+                  isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+                ].join(' ')
+              }
+            >
+              Tools
+            </NavLink>
+            <Link to={"/login"} >
+              <button
+                className="rounded-xl bg-[#1E3A8A] px-5 py-2.5 text-left text-white shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:brightness-90"
+                type="button"
+              >
+                Login
+              </button>
+            </Link>
           </div>
         </div>
       )}

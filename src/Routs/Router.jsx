@@ -7,6 +7,8 @@ import Question from '../pages/Question'
 import Profile from '../pages/Profile'
 import Tools from '../pages/Tools'
 import Notice from '../pages/Notice'
+import Login from '../components/Login'
+import Registration from '../components/Registration'
 
 const router = createBrowserRouter([
   {
@@ -33,6 +35,14 @@ const router = createBrowserRouter([
       {
         path: '/tools',
         Component: Tools,
+      },
+      {
+        path: '/login',
+        Component: Login,
+      },
+      {
+        path: '/register',
+        Component: Registration,
       },
       {
         path: '/profile',
