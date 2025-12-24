@@ -4,6 +4,9 @@ import ErrorPage from '../components/ErrorPage'
 import Home from '../pages/Home'
 import AllBatch from '../pages/AllBatch'
 import Question from '../pages/Question'
+import Profile from '../pages/Profile'
+import Tools from '../pages/Tools'
+import Notice from '../pages/Notice'
 
 const router = createBrowserRouter([
   {
@@ -23,6 +26,18 @@ const router = createBrowserRouter([
         path: '/question',
         Component: Question,
       },
+      {
+        path: '/notice',
+        Component: Notice,
+      },
+      {
+        path: '/tools',
+        Component: Tools,
+      },
+      {
+        path: '/profile',
+        Component: Profile,
+      }
     ],
   },
 ])

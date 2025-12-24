@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
 import { HiHome, HiOutlineBell, HiOutlineSquares2X2, HiOutlineUser, HiOutlineWrenchScrewdriver } from 'react-icons/hi2'
 import { HiOutlineDocumentText } from 'react-icons/hi'
 import Navbar from '../components/Navbar'
@@ -13,23 +13,35 @@ const Layout = () => {
       <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-[#E5E7EB] bg-white/90 text-[#1E3A8A] backdrop-blur-lg shadow-[0_-8px_16px_rgba(0,0,0,0.08)] sm:hidden">
         <div className="mx-auto grid max-w-[640px] grid-cols-6 px-4 py-3">
           {[
-            { label: 'Home', icon: HiHome },
-            { label: 'Tools', icon: HiOutlineWrenchScrewdriver },
-            { label: 'Question', icon: HiOutlineDocumentText },
-            { label: 'Notice', icon: HiOutlineBell },
-            { label: 'Dashboard', icon: HiOutlineSquares2X2 },
-            { label: 'Profile', icon: HiOutlineUser },
+            { label: 'Home', icon: HiHome, to: '/' },
+            { label: 'Tools', icon: HiOutlineWrenchScrewdriver, to: '/tools' },
+            { label: 'Question', icon: HiOutlineDocumentText, to: '/question' },
+            { label: 'Notice', icon: HiOutlineBell, to: '/notice' },
+            { label: 'Dashboard', icon: HiOutlineSquares2X2, to: '/dashboard' },
+            { label: 'Profile', icon: HiOutlineUser, to: '/profile' },
           ].map((item) => (
-            <button
+            <NavLink
               key={item.label}
-              type="button"
-              className="flex flex-col items-center justify-center text-[#1E3A8A] transition hover:text-[#1E3A8A]"
+              to={item.to}
+              className={({ isActive }) =>
+                [
+                  'flex flex-col items-center justify-center transition',
+                  isActive ? 'opacity-100' : 'opacity-70 hover:opacity-100',
+                ].join(' ')
+              }
               aria-label={item.label}
             >
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white">
-                <item.icon className="h-6 w-6" aria-hidden="true" />
-              </span>
-            </button>
+              {({ isActive }) => (
+                <span
+                  className={[
+                    'grid h-10 w-10 place-items-center rounded-xl transition',
+                    isActive ? 'bg-[#2B4CB3] text-white' : 'bg-white text-[#1E3A8A]',
+                  ].join(' ')}
+                >
+                  <item.icon className="h-6 w-6" aria-hidden="true" />
+                </span>
+              )}
+            </NavLink>
           ))}
         </div>
       </nav>

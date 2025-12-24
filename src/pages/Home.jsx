@@ -52,11 +52,19 @@ function Home() {
       <SearchBar />
 
       <section className="mb-12 animate-fade-up" style={{ animationDelay: '0.26s' }}>
-        <div className="mb-5">
-          <h2 className="text-2xl font-semibold text-[#1E3A8A]">Question Bank</h2>
-          <p className="mt-2 text-sm text-[#475569]">
-            Browse batch-wise to find class tests and finals faster.
-          </p>
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-semibold text-[#1E3A8A]">Question Bank</h2>
+            <p className="mt-2 text-sm text-[#475569]">
+              Browse batch-wise to find class tests and finals faster.
+            </p>
+          </div>
+          <a
+            href="/question"
+            className="hidden md:block rounded-xl border border-[#1E3A8A] px-4 py-2 text-sm font-semibold text-[#1E3A8A] shadow-[0_6px_14px_rgba(15,23,42,0.08)] transition hover:bg-[#1E3A8A] hover:text-white"
+          >
+            View More
+          </a>
         </div>
         <BatchGrid batches={batches} />
       </section>
