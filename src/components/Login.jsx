@@ -1,6 +1,53 @@
-import { Link } from 'react-router-dom'
+import { useContext, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { AuthContext } from '../Provider/AuthProvider.jsx'
 
 function Login() {
+  const { loginUser, googleLogin } = useContext(AuthContext)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setError('')
+    setSubmitting(true)
+    const form = event.currentTarget
+    const email = form.email?.value?.trim()
+    const password = form.password?.value
+
+    if (!email || !password) {
+      setError('Email and password are required.')
+      setSubmitting(false)
+      return
+    }
+
+    try {
+      await loginUser(email, password)
+      const redirectTo = location.state?.from?.pathname || '/'
+      navigate(redirectTo, { replace: true })
+    } catch (err) {
+      setError(err?.message || 'Login failed. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    setError('')
+    setSubmitting(true)
+    try {
+      await googleLogin()
+      const redirectTo = location.state?.from?.pathname || '/'
+      navigate(redirectTo, { replace: true })
+    } catch (err) {
+      setError(err?.message || 'Google sign-in failed. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#F3F6FF] via-[#F6F7FF] to-[#EEF2FF] px-4 py-6 sm:-mt-6 md:-mt-10 lg:-mt-12">
       <div className="mx-auto w-full max-w-[320px] overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white shadow-[0_16px_36px_rgba(15,23,42,0.12)]">
@@ -11,13 +58,14 @@ function Login() {
 
         <div className="px-4 pb-5 pt-3">
 
-          <form className="mt-3 space-y-2.5">
+          <form className="mt-3 space-y-2.5" onSubmit={handleSubmit}>
             <div>
               <label className="text-sm font-semibold text-[#334155]" htmlFor="login-email">
                 Email
               </label>
               <input
                 id="login-email"
+                name="email"
                 type="email"
                 placeholder="Enter your email"
                 className="mt-1.5 w-full rounded-2xl border border-[#E2E8F0] px-4 py-2 text-sm text-[#334155] outline-none transition focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/20"
@@ -35,17 +83,23 @@ function Login() {
               </div>
               <input
                 id="login-password"
+                name="password"
                 type="password"
                 placeholder="Enter your password"
                 className="mt-1.5 w-full rounded-2xl border border-[#E2E8F0] px-4 py-2 text-sm text-[#334155] outline-none transition focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/20"
               />
             </div>
 
+            {error ? (
+              <p className="text-xs font-semibold text-[#DC2626]">{error}</p>
+            ) : null}
+
             <button
               type="submit"
-              className="w-full rounded-full bg-[#1E3A8A] py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(30,58,138,0.28)] transition hover:brightness-95"
+              className="w-full rounded-full bg-[#1E3A8A] py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(30,58,138,0.28)] transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={submitting}
             >
-              LOGIN
+              {submitting ? 'Please wait...' : 'LOGIN'}
             </button>
           </form>
 
@@ -57,7 +111,9 @@ function Login() {
 
           <button
             type="button"
-            className="mt-3 flex w-full items-center justify-center gap-3 rounded-full border border-[#E2E8F0] bg-white py-2 text-sm font-semibold text-[#334155] shadow-[0_8px_18px_rgba(15,23,42,0.08)]"
+            className="mt-3 flex w-full items-center justify-center gap-3 rounded-full border border-[#E2E8F0] bg-white py-2 text-sm font-semibold text-[#334155] shadow-[0_8px_18px_rgba(15,23,42,0.08)] disabled:cursor-not-allowed disabled:opacity-70"
+            onClick={handleGoogleLogin}
+            disabled={submitting}
           >
             <svg viewBox="0 0 48 48" className="h-5 w-5" aria-hidden="true">
               <path

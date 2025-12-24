@@ -1,8 +1,106 @@
-import { useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import {
+  HiOutlineBell,
+  HiOutlineChartBarSquare,
+  HiOutlineChatBubbleLeftRight,
+  HiOutlineClipboardDocumentCheck,
+  HiOutlineExclamationTriangle,
+  HiOutlineHome,
+  HiOutlinePhoto,
+  HiOutlineSquares2X2,
+  HiOutlineUser,
+  HiOutlineUsers,
+  HiOutlineXMark,
+} from 'react-icons/hi2'
+import { HiOutlineDocumentText } from 'react-icons/hi'
+import { AuthContext } from '../Provider/AuthProvider.jsx'
+import useUserProfile from '../hooks/useUserProfile.js'
+
+const dashboardMenuByRole = {
+  student: [
+    { label: 'Dashboard Overview', to: '/dashboard' },
+    { label: 'My Profile', to: '/dashboard/profile' },
+    { label: 'My Contribution', to: '/dashboard/my-contribution' },
+    { label: 'Pending Contribution', to: '/dashboard/pending-contribution' },
+    { label: 'My Notice', to: '/dashboard/my-notice' },
+    { label: 'My Comment', to: '/dashboard/my-comment' },
+    { label: 'Admin Feedback', to: '/dashboard/admin-feedback' },
+  ],
+  moderator: [
+    { label: 'Dashboard Overview', to: '/dashboard' },
+    { label: 'My Profile', to: '/dashboard/profile' },
+    { label: 'My Contribution', to: '/dashboard/my-contribution' },
+    { label: 'Contribute Request', to: '/dashboard/contribute-request' },
+    { label: 'My Notice', to: '/dashboard/my-notice' },
+    { label: 'My Comment', to: '/dashboard/my-comment' },
+    { label: 'Account Approval', to: '/dashboard/account-approval' },
+    { label: 'Admin Feedback', to: '/dashboard/admin-feedback' },
+  ],
+  cr: [
+    { label: 'Dashboard Overview', to: '/dashboard' },
+    { label: 'My Profile', to: '/dashboard/profile' },
+    { label: 'My Contribution', to: '/dashboard/my-contribution' },
+    { label: 'Contribute Request', to: '/dashboard/contribute-request' },
+    { label: 'My Notice', to: '/dashboard/my-notice' },
+    { label: 'My Comment', to: '/dashboard/my-comment' },
+    { label: 'Account Approval', to: '/dashboard/account-approval' },
+    { label: 'Admin Feedback', to: '/dashboard/admin-feedback' },
+  ],
+  admin: [
+    { label: 'Dashboard Overview', to: '/dashboard' },
+    { label: 'My Profile', to: '/dashboard/profile' },
+    { label: 'Manage User', to: '/dashboard/manage-user' },
+    { label: 'My Contribution', to: '/dashboard/my-contribution' },
+    { label: 'Contribute Request', to: '/dashboard/contribute-request' },
+    { label: 'My Notice', to: '/dashboard/my-notice' },
+    { label: 'My Comment', to: '/dashboard/my-comment' },
+    { label: 'Account Approval', to: '/dashboard/account-approval' },
+    { label: 'User Feedback', to: '/dashboard/user-feedback' },
+    { label: 'Reported Object', to: '/dashboard/reported-object' },
+    { label: 'Add Banner', to: '/dashboard/add-banner' },
+    { label: 'Analytics', to: '/dashboard/analytics' },
+  ],
+}
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { user, loading } = useContext(AuthContext)
+  const { profile } = useUserProfile()
+  const [avatarUrl, setAvatarUrl] = useState(user?.photoURL || '/profile-avatar.jpg')
+  const avatarAlt = user?.displayName || 'Profile'
+  const [avatarLoaded, setAvatarLoaded] = useState(false)
+  const initials = useMemo(() => {
+    const name = user?.displayName || ''
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase()
+  }, [user?.displayName])
+
+  useEffect(() => {
+    const syncAvatar = () => {
+      const storedAvatar = localStorage.getItem('profile-avatar')
+      if (storedAvatar) {
+        setAvatarUrl(storedAvatar)
+        return
+      }
+      setAvatarUrl(user?.photoURL || '/profile-avatar.jpg')
+    }
+
+    syncAvatar()
+    window.addEventListener('profile-avatar-updated', syncAvatar)
+    return () => window.removeEventListener('profile-avatar-updated', syncAvatar)
+  }, [user?.photoURL])
+
+  useEffect(() => {
+    setAvatarLoaded(false)
+  }, [avatarUrl])
+
+  const dashboardMenuItems = dashboardMenuByRole[profile?.role?.toLowerCase() || 'student'] || []
 
   return (
     <header
@@ -75,14 +173,37 @@ function Navbar() {
           >
             Dashboard
           </NavLink>
-          <Link to={"/login"} >
-            <button
-              className="rounded-xl bg-[#1E3A8A] px-5 py-2.5 text-left text-white shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:brightness-90"
-              type="button"
+          {loading ? null : user ? (
+            <Link
+              to="/profile"
+              className="flex items-center gap-2 rounded-full border border-[#E5E7EB] px-2.5 py-1.5 shadow-[0_6px_14px_rgba(15,23,42,0.12)]"
             >
-              Login
-            </button>
-          </Link>
+              <span className="relative grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-[#E0E7FF] text-[11px] font-semibold text-[#1E3A8A]">
+                {initials || 'U'}
+                <img
+                  src={avatarUrl}
+                  alt={avatarAlt}
+                  className={`absolute inset-0 h-full w-full rounded-full object-cover transition-opacity ${
+                    avatarLoaded ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  onLoad={() => setAvatarLoaded(true)}
+                  loading="eager"
+                />
+              </span>
+              <span className="max-w-[120px] truncate text-sm font-semibold text-[#1E3A8A]">
+                {user?.displayName || 'Profile'}
+              </span>
+            </Link>
+          ) : (
+            <Link to="/login">
+              <button
+                className="rounded-xl bg-[#1E3A8A] px-5 py-2.5 text-left text-white shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:brightness-90"
+                type="button"
+              >
+                Login
+              </button>
+            </Link>
+          )}
         </nav>
 
         <button
@@ -101,38 +222,97 @@ function Navbar() {
       </div>
 
       {menuOpen && (
-        <div className="border-t border-[#E5E7EB] bg-white px-6 pb-6 pt-4 text-sm font-semibold text-[#475569] shadow-[0_12px_24px_rgba(0,0,0,0.08)] md:hidden">
-          <div className="grid gap-3">
-            <NavLink
-              to="/question"
-              className={({ isActive }) =>
-                [
-                  'rounded-xl px-3 py-2 transition hover:text-[#1E3A8A]',
-                  isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
-                ].join(' ')
-              }
+        <div className="fixed left-0 top-0 z-50 h-screen w-screen md:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-[#0F172A]/50"
+            aria-label="Close menu"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div className="absolute right-0 top-0 h-full w-[60%] min-w-[240px] overflow-y-auto bg-white px-5 pb-24 pt-16 shadow-[0_30px_60px_rgba(15,23,42,0.25)]">
+            <button
+              type="button"
+              className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-[#0F172A]/10 text-[#1E3A8A]"
+              aria-label="Close menu"
+              onClick={() => setMenuOpen(false)}
             >
-              Question Bank
-            </NavLink>
-            <NavLink
-              to="/tools"
-              className={({ isActive }) =>
-                [
-                  'rounded-xl px-3 py-2 transition hover:text-[#1E3A8A]',
-                  isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
-                ].join(' ')
-              }
-            >
-              Tools
-            </NavLink>
-            <Link to={"/login"} >
-              <button
-                className="rounded-xl bg-[#1E3A8A] px-5 py-2.5 text-left text-white shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:brightness-90"
-                type="button"
-              >
-                Login
-              </button>
-            </Link>
+              <HiOutlineXMark className="h-5 w-5" />
+            </button>
+            {loading ? null : user ? (
+              <div className="flex items-center gap-3 border-b border-[#E5E7EB] pb-4">
+                <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-[#E0E7FF] text-xs font-semibold text-[#1E3A8A]">
+                  {initials || 'U'}
+                  <img
+                    src={avatarUrl}
+                    alt={avatarAlt}
+                    className={`absolute inset-0 h-full w-full rounded-full object-cover transition-opacity ${
+                      avatarLoaded ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    onLoad={() => setAvatarLoaded(true)}
+                    loading="eager"
+                  />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-[#0F172A]">
+                    {user?.displayName || 'Profile'}
+                  </p>
+                  <p className="text-xs text-[#64748B]">{profile?.role || 'Student'}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="border-b border-[#E5E7EB] pb-4">
+                <Link
+                  to="/login"
+                  className="inline-flex rounded-full bg-[#1E3A8A] px-4 py-2 text-sm font-semibold text-white"
+                >
+                  Login
+                </Link>
+              </div>
+            )}
+
+            <div className="mt-4">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#94A3B8]">
+                Dashboard Menu
+              </p>
+              <div className="grid gap-2">
+                {dashboardMenuItems.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.to === '/dashboard'}
+                    onClick={() => setMenuOpen(false)}
+                    className={({ isActive }) =>
+                      [
+                        'flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition',
+                        isActive
+                          ? 'bg-[#1E3A8A] text-white shadow-[0_8px_18px_rgba(30,58,138,0.22)]'
+                          : 'text-[#475569] hover:text-[#1E3A8A]',
+                      ].join(' ')
+                    }
+                  >
+                    <span className="text-base">
+                      {{
+                        '/dashboard': <HiOutlineSquares2X2 />,
+                        '/dashboard/profile': <HiOutlineUser />,
+                        '/dashboard/manage-user': <HiOutlineUsers />,
+                        '/dashboard/my-contribution': <HiOutlineDocumentText />,
+                        '/dashboard/pending-contribution': <HiOutlineClipboardDocumentCheck />,
+                        '/dashboard/contribute-request': <HiOutlineClipboardDocumentCheck />,
+                        '/dashboard/my-notice': <HiOutlineBell />,
+                        '/dashboard/my-comment': <HiOutlineChatBubbleLeftRight />,
+                        '/dashboard/account-approval': <HiOutlineClipboardDocumentCheck />,
+                        '/dashboard/admin-feedback': <HiOutlineChatBubbleLeftRight />,
+                        '/dashboard/user-feedback': <HiOutlineChatBubbleLeftRight />,
+                        '/dashboard/reported-object': <HiOutlineExclamationTriangle />,
+                        '/dashboard/add-banner': <HiOutlinePhoto />,
+                        '/dashboard/analytics': <HiOutlineChartBarSquare />,
+                      }[item.to] || <HiOutlineHome />}
+                    </span>
+                    <span>{item.label}</span>
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
