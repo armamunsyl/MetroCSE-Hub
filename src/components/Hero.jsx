@@ -11,7 +11,7 @@ function Hero() {
       style={{ animationDelay: '0.12s' }}
     >
       <div>
-        <div className="overflow-hidden rounded-[22px] sm:hidden">
+        <div className="overflow-hidden  sm:hidden">
           <div className="flex w-[200%] animate-slide-loop">
             {[{ src: '/hero.png', alt: 'MetroCSE banner one' }, { src: '/hero1.png', alt: 'MetroCSE banner two' }].map(
               (item) => (

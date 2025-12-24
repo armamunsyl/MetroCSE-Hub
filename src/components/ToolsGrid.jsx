@@ -21,19 +21,19 @@ function ToolsGrid({ tools }) {
         return (
           <div
             key={tool.title}
-            className="flex min-h-[86px] items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-3 shadow-[0_10px_18px_rgba(0,0,0,0.06)] sm:grid sm:min-h-[140px] sm:gap-3 sm:p-4"
+            className="flex min-h-[86px] items-center gap-3 rounded-2xl bg-[#1E3A8A] p-3 text-white shadow-[0_14px_26px_rgba(30,58,138,0.25)] sm:grid sm:min-h-[140px] sm:gap-3 sm:p-4"
           >
             <div
-              className="grid h-9 w-9 flex-none place-items-center rounded-full border border-[#E5E7EB] text-[#1E3A8A]"
+              className="grid h-9 w-9 flex-none place-items-center rounded-full border border-white/30 bg-white/15 text-white"
               aria-hidden="true"
             >
               <Icon className="h-5 w-5" aria-hidden="true" />
             </div>
             <div>
-              <div className="text-xs font-semibold text-[#0F172A] sm:text-base">
+              <div className="text-xs font-semibold text-white sm:text-base">
                 {tool.title}
               </div>
-              <div className="mt-1 hidden text-sm text-[#475569] sm:block">
+              <div className="mt-1 hidden text-sm text-white/80 sm:block">
                 {tool.description}
               </div>
             </div>

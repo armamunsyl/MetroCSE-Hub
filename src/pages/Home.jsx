@@ -42,6 +42,13 @@ function Home() {
   return (
     <main className="mx-auto w-full max-w-[1160px] px-4 pb-20 sm:px-8">
       <Hero />
+      <div className="mb-5 mt-5">
+        <h2 className="text-2xl font-semibold text-[#1E3A8A]">Quick Tools</h2>
+        <p className="hidden md:block mt-2 text-sm text-[#475569]">
+          Helpful academic utilities for your semester workflow.
+        </p>
+      </div>
+      <ToolsGrid tools={tools} />
       <SearchBar />
 
       <section className="mb-12 animate-fade-up" style={{ animationDelay: '0.26s' }}>
@@ -54,15 +61,6 @@ function Home() {
         <BatchGrid batches={batches} />
       </section>
 
-      <section className="animate-fade-up bg-[#F8FAFC] pb-6" style={{ animationDelay: '0.32s' }}>
-        <div className="mb-5">
-          <h2 className="text-2xl font-semibold text-[#1E3A8A]">Quick Tools</h2>
-          <p className="mt-2 text-sm text-[#475569]">
-            Helpful academic utilities for your semester workflow.
-          </p>
-        </div>
-        <ToolsGrid tools={tools} />
-      </section>
     </main>
   )
 }
