@@ -1,5 +1,7 @@
 import { useState } from 'react'
 
+const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
+
 const filters = {
   batches: ['CSE 57', 'CSE 57', 'CSE 59', 'CSE 57', 'CSE 60', 'CSE 61', 'CSE 62', 'CSE 63', 'CSE 64'],
   sections: ['Sec A', 'Sec B', 'Sec C', 'Sec D', 'Sec E', 'Sec F', 'Sec G', 'Sec H'],
@@ -22,17 +24,123 @@ const PAGE_SIZE = 10
 
 const Question = () => {
   const [page, setPage] = useState(1)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [formData, setFormData] = useState({
+    subject: '',
+    courseCode: '',
+    batch: '',
+    semester: '',
+    section: '',
+    facultyName: '',
+    examType: 'CT',
+    comment: '',
+  })
+  const [imageName, setImageName] = useState('')
+  const [imageFile, setImageFile] = useState(null)
   const totalPages = Math.ceil(questions.length / PAGE_SIZE)
   const startIndex = (page - 1) * PAGE_SIZE
   const pageRows = questions.slice(startIndex, startIndex + PAGE_SIZE)
+  const isFinal = formData.examType === 'Final'
+
+  const handleFieldChange = (field) => (event) => {
+    setFormData((prev) => ({ ...prev, [field]: event.target.value }))
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    const token = localStorage.getItem('access-token')
+    if (!token) {
+      setSubmitError('Unauthorized access.')
+      return
+    }
+
+    try {
+      setSubmitError('')
+      setSubmitting(true)
+      let questionImageUrl = ''
+
+      if (imageFile) {
+        const formPayload = new FormData()
+        formPayload.append('image', imageFile)
+        const uploadResponse = await fetch(`${apiBaseUrl}/upload/question-image`, {
+          method: 'POST',
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+          body: formPayload,
+        })
+
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload image.')
+        }
+
+        const uploadData = await uploadResponse.json()
+        questionImageUrl = uploadData.url || ''
+      }
+
+      const payload = {
+        subjectName: formData.subject,
+        courseCode: formData.courseCode,
+        batch: formData.batch,
+        semester: formData.semester,
+        type: formData.examType,
+        section: formData.examType === 'CT' ? formData.section : '',
+        facultyName: formData.examType === 'CT' ? formData.facultyName : '',
+        questionImageUrl,
+        uploaderComment: formData.comment,
+      }
+
+      const response = await fetch(`${apiBaseUrl}/questions`, {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${token}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to submit question.')
+      }
+
+      setModalOpen(false)
+      setFormData({
+        subject: '',
+        courseCode: '',
+        batch: '',
+        semester: '',
+        section: '',
+        facultyName: '',
+        examType: 'CT',
+        comment: '',
+      })
+      setImageName('')
+      setImageFile(null)
+    } catch (err) {
+      setSubmitError(err?.message || 'Failed to submit question.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <main className="mx-auto w-full max-w-[1160px] px-4 pb-20 sm:px-8">
-      <section className="mb-6">
-        <h1 className="text-2xl font-semibold text-[#0F172A] sm:text-3xl">Questions</h1>
-        <p className="mt-2 text-sm text-[#475569]">
-          Recent 10 questions with filters for batch, section, semester, type, and subject.
-        </p>
+      <section className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-[#0F172A] sm:text-3xl">Questions</h1>
+          <p className="mt-2 text-sm text-[#475569]">
+            Recent 10 questions with filters for batch, section, semester, type, and subject.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="rounded-xl bg-[#1E3A8A] px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(30,58,138,0.28)] transition hover:brightness-95"
+          onClick={() => setModalOpen(true)}
+        >
+          Upload Question
+        </button>
       </section>
 
       <section className="mb-8 grid gap-4 rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-[0_8px_16px_rgba(0,0,0,0.06)]">
@@ -197,6 +305,155 @@ const Question = () => {
           </div>
         </div>
       </section>
+
+      {modalOpen ? (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-[#0F172A]/40 px-3">
+          <div className="w-full max-w-[520px] rounded-2xl bg-white p-4 shadow-[0_20px_50px_rgba(15,23,42,0.25)] sm:p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-[#0F172A] sm:text-base">Upload question</h2>
+              <button
+                type="button"
+                className="text-xs font-semibold text-[#64748B] sm:text-sm"
+                onClick={() => setModalOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+            <form
+              className="mt-3 max-h-[75vh] space-y-3 overflow-y-auto text-xs text-[#475569] sm:mt-4 sm:max-h-none sm:space-y-4 sm:text-sm"
+              onSubmit={handleSubmit}
+            >
+              <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+                <label className="space-y-1 text-xs font-semibold text-[#475569] sm:col-span-2 sm:space-y-2">
+                  Subject
+                  <input
+                    type="text"
+                    className="w-full rounded-xl border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-sm font-normal text-[#475569] sm:px-3 sm:py-2"
+                    value={formData.subject}
+                    onChange={handleFieldChange('subject')}
+                  />
+                </label>
+                <div className="grid grid-cols-2 gap-3 sm:col-span-2 sm:gap-4">
+                  <label className="space-y-1 text-xs font-semibold text-[#475569] sm:space-y-2">
+                    Course code
+                    <input
+                      type="text"
+                      className="w-full rounded-xl border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-sm font-normal text-[#475569] sm:px-3 sm:py-2"
+                      value={formData.courseCode}
+                      onChange={handleFieldChange('courseCode')}
+                    />
+                  </label>
+                  <label className="space-y-1 text-xs font-semibold text-[#475569] sm:space-y-2">
+                    Batch
+                    <input
+                      type="text"
+                      className="w-full rounded-xl border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-sm font-normal text-[#475569] sm:px-3 sm:py-2"
+                      value={formData.batch}
+                      onChange={handleFieldChange('batch')}
+                    />
+                  </label>
+                </div>
+                <label className="space-y-1 text-xs font-semibold text-[#475569] sm:space-y-2">
+                  Semester
+                  <select
+                    className="w-full rounded-xl border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-sm font-normal text-[#475569] sm:px-3 sm:py-2"
+                    value={formData.semester}
+                    onChange={handleFieldChange('semester')}
+                  >
+                    <option value="">Select</option>
+                    {filters.semesters.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="space-y-1 text-xs font-semibold text-[#475569] sm:space-y-2">
+                  Type
+                  <select
+                    className="w-full rounded-xl border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-sm font-normal text-[#475569] sm:px-3 sm:py-2"
+                    value={formData.examType}
+                    onChange={handleFieldChange('examType')}
+                  >
+                    <option value="Final">Final</option>
+                    <option value="CT">CT</option>
+                  </select>
+                </label>
+                {!isFinal ? (
+                  <>
+                    <label className="space-y-1 text-xs font-semibold text-[#475569] sm:space-y-2">
+                      Section
+                      <input
+                        type="text"
+                        className="w-full rounded-xl border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-sm font-normal text-[#475569] sm:px-3 sm:py-2"
+                        value={formData.section}
+                        onChange={handleFieldChange('section')}
+                      />
+                    </label>
+                    <label className="space-y-1 text-xs font-semibold text-[#475569] sm:col-span-2 sm:space-y-2">
+                      Faculty name
+                      <input
+                        type="text"
+                        className="w-full rounded-xl border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-sm font-normal text-[#475569] sm:px-3 sm:py-2"
+                        value={formData.facultyName}
+                        onChange={handleFieldChange('facultyName')}
+                      />
+                    </label>
+                  </>
+                ) : null}
+              </div>
+
+              <label className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-[#CBD5F5] bg-[#F8FAFF] px-3 py-2 text-xs text-[#475569] sm:px-4 sm:py-3 sm:text-sm">
+                <span className="text-xs sm:text-sm">
+                  {imageName ? imageName : 'Upload image'}
+                </span>
+                <span className="rounded-full bg-[#E0E7FF] px-2.5 py-1 text-[10px] font-semibold text-[#1E3A8A] sm:px-3 sm:text-xs">
+                  Browse
+                </span>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0]
+                    setImageName(file ? file.name : '')
+                    setImageFile(file || null)
+                  }}
+                />
+              </label>
+
+              <label className="space-y-1 text-xs font-semibold text-[#475569] sm:space-y-2">
+                Comment
+                <textarea
+                  rows="2"
+                  className="w-full rounded-xl border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-sm font-normal text-[#475569] sm:px-3 sm:py-2"
+                  value={formData.comment}
+                  onChange={handleFieldChange('comment')}
+                />
+              </label>
+              {submitError ? <p className="text-xs font-semibold text-[#DC2626]">{submitError}</p> : null}
+
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  className="rounded-xl border border-[#E5E7EB] px-3 py-2 text-[11px] font-semibold text-[#475569] sm:px-4 sm:text-xs"
+                  onClick={() => setModalOpen(false)}
+                  disabled={submitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-[#1E3A8A] px-3 py-2 text-[11px] font-semibold text-white shadow-[0_10px_20px_rgba(30,58,138,0.28)] transition hover:brightness-95 sm:px-4 sm:text-xs"
+                  disabled={submitting}
+                >
+                  {submitting ? 'Submitting...' : 'Submit'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </main>
   )
 }
