@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
@@ -10,20 +11,11 @@ const filters = {
   subjects: ['AD&A', 'Data Structure', 'Structured Programming', 'DLD', 'BEE 1', 'BEE 2'],
 }
 
-const questions = Array.from({ length: 20 }).map((_, index) => ({
-  id: index + 1,
-  code: filters.batches[index % filters.batches.length],
-  subject: filters.subjects[index % filters.subjects.length],
-  type: filters.types[index % filters.types.length],
-  section: filters.sections[index % filters.sections.length],
-  semester: filters.semesters[index % filters.semesters.length],
-  year: 2024 - (index % 3),
-}))
-
-const PAGE_SIZE = 10
-
 const Question = () => {
   const [page, setPage] = useState(1)
+  const [questions, setQuestions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -39,10 +31,56 @@ const Question = () => {
   })
   const [imageName, setImageName] = useState('')
   const [imageFile, setImageFile] = useState(null)
-  const totalPages = Math.ceil(questions.length / PAGE_SIZE)
+  const isFinal = formData.examType === 'Final'
+  const PAGE_SIZE = 10
+  const totalPages = Math.max(1, Math.ceil(questions.length / PAGE_SIZE))
   const startIndex = (page - 1) * PAGE_SIZE
   const pageRows = questions.slice(startIndex, startIndex + PAGE_SIZE)
-  const isFinal = formData.examType === 'Final'
+
+  useEffect(() => {
+    const token = localStorage.getItem('access-token')
+    if (!token) {
+      setError('Unauthorized access.')
+      setLoading(false)
+      return
+    }
+
+    const fetchQuestions = async () => {
+      try {
+        setError('')
+        setLoading(true)
+        const response = await fetch(`${apiBaseUrl}/questions?status=Approved`, {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to load questions.')
+        }
+
+        const data = await response.json()
+        setQuestions(Array.isArray(data) ? data : [])
+      } catch (err) {
+        setError(err?.message || 'Failed to load questions.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchQuestions()
+  }, [])
+
+  const getInitials = useMemo(() => {
+    return (name) =>
+      String(name || '')
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join('')
+        .toUpperCase()
+  }, [])
 
   const handleFieldChange = (field) => (event) => {
     setFormData((prev) => ({ ...prev, [field]: event.target.value }))
@@ -215,39 +253,64 @@ const Question = () => {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_8px_16px_rgba(0,0,0,0.06)]">
-        <div className="hidden overflow-x-auto sm:block">
-          <table className="w-full min-w-[720px] text-left text-sm text-[#475569]">
-            <thead className="bg-[#F8FAFC] text-xs uppercase tracking-wide text-[#475569]">
-              <tr>
-                <th className="px-4 py-3 font-semibold text-[#0F172A]">Batch</th>
-                <th className="px-4 py-3 font-semibold text-[#0F172A]">Subject</th>
-                <th className="px-4 py-3 font-semibold text-[#0F172A]">Type</th>
-                <th className="px-4 py-3 font-semibold text-[#0F172A]">Section</th>
-                <th className="px-4 py-3 font-semibold text-[#0F172A]">Semester</th>
-                <th className="px-4 py-3 font-semibold text-[#0F172A]">Year</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pageRows.map((row) => (
-                <tr key={row.id} className="border-t border-[#E5E7EB]">
-                  <td className="px-4 py-3 font-semibold text-[#0F172A]">{row.code}</td>
-                  <td className="px-4 py-3">{row.subject}</td>
-                  <td className="px-4 py-3">{row.type}</td>
-                  <td className="px-4 py-3">{row.section}</td>
-                  <td className="px-4 py-3">{row.semester}</td>
-                  <td className="px-4 py-3">{row.year}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <section className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_14px_28px_rgba(15,23,42,0.08)]">
+        <div className="divide-y divide-[#E5E7EB]">
+          {loading ? (
+            <div className="px-4 py-6 text-sm text-[#64748B]">Loading approved questions...</div>
+          ) : error ? (
+            <div className="px-4 py-6 text-sm font-semibold text-[#DC2626]">{error}</div>
+          ) : pageRows.length === 0 ? (
+            <div className="px-4 py-6 text-sm text-[#64748B]">No approved questions found.</div>
+          ) : (
+            pageRows.map((row) => (
+              <Link
+                key={row._id}
+                to={`/question/${row._id}`}
+                className="flex items-center gap-4 px-4 py-4 transition hover:bg-[#F8FAFC]"
+              >
+                <div className="relative grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-[#E5E7EB] bg-[#EEF2FF] text-[#1E3A8A]">
+                  {row.uploaderImage ? (
+                    <img
+                      src={row.uploaderImage}
+                      alt={row.uploaderName || 'Uploader'}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="text-sm font-semibold">{getInitials(row.uploaderName)}</span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-semibold text-[#0F172A] sm:text-base">
+                    {row.subjectName || '--'}
+                    <span className="text-[#94A3B8]">,</span>{' '}
+                    {row.batch ? `CSE ${row.batch}` : 'CSE --'}
+                  </div>
+                  <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2 text-xs text-[#64748B]">
+                    <span className="max-w-[140px] truncate font-semibold text-[#0F172A] sm:max-w-none sm:truncate-none">
+                      {row.uploaderName || 'Unknown'}
+                    </span>
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-[#475569]">
+                      {row.uploaderBatch ? `CSE ${row.uploaderBatch}` : 'CSE --'}
+                    </span>
+                    <span className="rounded-full bg-[#EEF2FF] px-2 py-0.5 text-[11px] font-semibold text-[#1E3A8A]">
+                      {row.uploaderRole || 'Student'}
+                    </span>
+                    <span className="hidden rounded-full bg-[#ECFEFF] px-2 py-0.5 text-[11px] font-semibold text-[#0F766E] sm:inline-flex">
+                      Score {row.uploaderScore ?? 0}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
-        <div className="hidden items-center justify-between px-4 py-3 text-xs text-[#475569] sm:flex">
+        <div className="flex items-center justify-between px-4 py-3 text-xs text-[#475569]">
           <button
             type="button"
             className="rounded-lg border border-[#E5E7EB] px-3 py-1 text-[#1E3A8A] disabled:opacity-50"
             onClick={() => setPage((current) => Math.max(1, current - 1))}
-            disabled={page === 1}
+            disabled={page === 1 || loading || pageRows.length === 0}
           >
             Prev
           </button>
@@ -258,51 +321,10 @@ const Question = () => {
             type="button"
             className="rounded-lg border border-[#E5E7EB] px-3 py-1 text-[#1E3A8A] disabled:opacity-50"
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-            disabled={page === totalPages}
+            disabled={page === totalPages || loading || pageRows.length === 0}
           >
             Next
           </button>
-        </div>
-
-        <div className="sm:hidden">
-          <div className="bg-[#F8FAFC] px-4 py-3 text-xs font-semibold text-[#475569]">Recent Questions</div>
-          <div className="divide-y divide-[#E5E7EB]">
-            {pageRows.map((row) => (
-              <div key={row.id} className="flex items-center gap-3 px-4 py-3">
-                <span className="grid h-9 w-9 place-items-center rounded-xl border border-[#E5E7EB] text-[#1E3A8A]">
-                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                    <path d="M4 7h6l2 2h8v8H4z" />
-                    <path d="M4 7V5a1 1 0 0 1 1-1h4l2 2" />
-                  </svg>
-                </span>
-                <div>
-                  <div className="text-sm font-semibold text-[#0F172A]">{row.code}</div>
-                  <div className="text-xs text-[#475569]">{row.subject}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center justify-between px-4 py-3 text-xs text-[#475569]">
-            <button
-              type="button"
-              className="rounded-lg border border-[#E5E7EB] px-3 py-1 text-[#1E3A8A] disabled:opacity-50"
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              disabled={page === 1}
-            >
-              Prev
-            </button>
-            <span>
-              Page {page} of {totalPages}
-            </span>
-            <button
-              type="button"
-              className="rounded-lg border border-[#E5E7EB] px-3 py-1 text-[#1E3A8A] disabled:opacity-50"
-              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-              disabled={page === totalPages}
-            >
-              Next
-            </button>
-          </div>
         </div>
       </section>
 

@@ -4,6 +4,7 @@ import ErrorPage from '../components/ErrorPage'
 import LandingGate from '../pages/LandingGate.jsx'
 import AllBatch from '../pages/AllBatch'
 import Question from '../pages/Question'
+import QuestionDetails from '../pages/QuestionDetails.jsx'
 import Profile from '../pages/Profile'
 import Tools from '../pages/Tools'
 import Notice from '../pages/Notice'
@@ -51,6 +52,14 @@ const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Question />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: '/question/:id',
+        element: (
+          <PrivateRoute>
+            <QuestionDetails />
           </PrivateRoute>
         ),
       },
