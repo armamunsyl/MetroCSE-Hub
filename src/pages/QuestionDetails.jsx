@@ -10,6 +10,7 @@ function QuestionDetails() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [imageZoom, setImageZoom] = useState(1)
+  const isZoomed = imageZoom > 1
 
   useEffect(() => {
     const token = localStorage.getItem('access-token')
@@ -173,13 +174,18 @@ function QuestionDetails() {
                     </button>
                   </div>
                 </div>
-                <div className="mt-3 flex min-h-[280px] items-center justify-center overflow-auto rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-3">
+                <div
+                  className={[
+                    'mt-3 flex min-h-[280px] items-center justify-center rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-3',
+                    isZoomed ? 'overflow-auto' : 'overflow-hidden',
+                  ].join(' ')}
+                >
                   {question.questionImageUrl ? (
                     <img
                       src={question.questionImageUrl}
                       alt="Question"
-                      className="max-h-[60vh] w-auto max-w-full object-contain transition-transform"
-                      style={{ transform: `scale(${imageZoom})`, transformOrigin: 'center' }}
+                      className="h-auto max-w-none object-contain"
+                      style={{ width: `${imageZoom * 100}%` }}
                     />
                   ) : (
                     <div className="text-sm text-[#94A3B8]">No image uploaded for this question.</div>
@@ -306,13 +312,18 @@ function QuestionDetails() {
                 </div>
               </div>
 
-              <div className="mt-4 flex min-h-[320px] items-center justify-center overflow-auto rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-3">
+              <div
+                className={[
+                  'mt-4 flex min-h-[320px] items-center justify-center rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-3',
+                  isZoomed ? 'overflow-auto' : 'overflow-hidden',
+                ].join(' ')}
+              >
                 {question.questionImageUrl ? (
                   <img
                     src={question.questionImageUrl}
                     alt="Question"
-                    className="max-h-[70vh] w-auto max-w-full object-contain transition-transform"
-                    style={{ transform: `scale(${imageZoom})`, transformOrigin: 'center' }}
+                    className="h-auto max-w-none object-contain"
+                    style={{ width: `${imageZoom * 100}%` }}
                   />
                 ) : (
                   <div className="text-sm text-[#94A3B8]">No image uploaded for this question.</div>
