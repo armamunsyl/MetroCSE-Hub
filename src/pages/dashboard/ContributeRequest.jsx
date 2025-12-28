@@ -9,6 +9,7 @@ function ContributeRequest() {
   const [error, setError] = useState('')
   const [selectedRequest, setSelectedRequest] = useState(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState('')
+  const [imageZoom, setImageZoom] = useState(1)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
@@ -47,6 +48,12 @@ function ContributeRequest() {
 
     fetchRequests()
   }, [user?.email])
+
+  useEffect(() => {
+    if (imagePreviewUrl) {
+      setImageZoom(1)
+    }
+  }, [imagePreviewUrl])
 
   const handleViewDetails = async (requestId) => {
     const token = localStorage.getItem('access-token')
@@ -326,20 +333,60 @@ function ContributeRequest() {
       ) : null}
 
       {imagePreviewUrl ? (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#0F172A]/60 px-4">
-          <div className="w-full max-w-[720px] rounded-2xl bg-white p-4 shadow-[0_20px_50px_rgba(15,23,42,0.25)]">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#0F172A]/60 px-4 py-6">
+          <div className="w-full max-w-[860px] max-h-[80vh] overflow-hidden rounded-2xl bg-white p-4 shadow-[0_20px_50px_rgba(15,23,42,0.25)]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-base font-semibold text-[#0F172A]">Question image</h2>
-              <button
-                type="button"
-                className="text-sm font-semibold text-[#64748B]"
-                onClick={() => setImagePreviewUrl('')}
-              >
-                Close
-              </button>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-white px-2 py-1 text-xs text-[#475569]">
+                  <button
+                    type="button"
+                    className="rounded-full px-2 py-1 font-semibold text-[#1E3A8A] hover:bg-[#EFF6FF]"
+                    onClick={() => setImageZoom((zoom) => Math.max(1, Number((zoom - 0.2).toFixed(1))))}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="range"
+                    min="1"
+                    max="3"
+                    step="0.1"
+                    value={imageZoom}
+                    onChange={(event) => setImageZoom(Number(event.target.value))}
+                    className="w-24"
+                    aria-label="Zoom level"
+                  />
+                  <button
+                    type="button"
+                    className="rounded-full px-2 py-1 font-semibold text-[#1E3A8A] hover:bg-[#EFF6FF]"
+                    onClick={() => setImageZoom((zoom) => Math.min(3, Number((zoom + 0.2).toFixed(1))))}
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-full px-2 py-1 text-[11px] font-semibold text-[#64748B] hover:bg-[#F8FAFC]"
+                    onClick={() => setImageZoom(1)}
+                  >
+                    Reset
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="text-sm font-semibold text-[#64748B]"
+                  onClick={() => setImagePreviewUrl('')}
+                >
+                  Close
+                </button>
+              </div>
             </div>
-            <div className="mt-4 overflow-hidden rounded-xl border border-[#E2E8F0]">
-              <img src={imagePreviewUrl} alt="Question" className="w-full object-cover" />
+            <div className="mt-4 flex max-h-[60vh] items-center justify-center overflow-auto rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-2">
+              <img
+                src={imagePreviewUrl}
+                alt="Question"
+                className="max-h-[60vh] w-auto max-w-full object-contain transition-transform"
+                style={{ transform: `scale(${imageZoom})`, transformOrigin: 'center' }}
+              />
             </div>
           </div>
         </div>
