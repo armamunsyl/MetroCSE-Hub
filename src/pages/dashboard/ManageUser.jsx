@@ -16,7 +16,7 @@ function ManageUser() {
   const [roleFilter, setRoleFilter] = useState('all')
   const [page, setPage] = useState(1)
   const perPage = 8
-  const roleOptions = ['Admin', 'Moderator', 'CR']
+  const roleOptions = ['Student', 'CR', 'Moderator', 'Admin']
 
   useEffect(() => {
     const token = localStorage.getItem('access-token')
@@ -51,10 +51,43 @@ function ManageUser() {
     fetchUsers()
   }, [user?.email])
 
-  const handleRoleChange = (userId, nextRole) => {
+  const handleRoleChange = async (userId, nextRole) => {
+    const token = localStorage.getItem('access-token')
+    if (!token) {
+      setError('Unauthorized access.')
+      return
+    }
+
+    const previousRole = users.find((existing) => existing._id === userId)?.role
     setUsers((prev) =>
       prev.map((user) => (user._id === userId ? { ...user, role: nextRole } : user))
     )
+    if (selectedUser?._id === userId) {
+      setSelectedUser((prev) => (prev ? { ...prev, role: nextRole } : prev))
+    }
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/admin/users/${userId}/role`, {
+        method: 'PATCH',
+        headers: {
+          authorization: `Bearer ${token}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ role: nextRole }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update role.')
+      }
+    } catch (err) {
+      setError(err?.message || 'Failed to update role.')
+      setUsers((prev) =>
+        prev.map((user) => (user._id === userId ? { ...user, role: previousRole } : user))
+      )
+      if (selectedUser?._id === userId) {
+        setSelectedUser((prev) => (prev ? { ...prev, role: previousRole } : prev))
+      }
+    }
   }
 
   const normalizedSearch = searchTerm.trim().toLowerCase()
