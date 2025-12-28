@@ -13,7 +13,8 @@ const Layout = () => {
   const { profile, loading: profileLoading } = useUserProfile()
   const isPending = String(profile?.status || '').toLowerCase() === 'pending'
   const isPendingPage = pathname === '/pending'
-  const topPadding = isPendingPage ? 'pt-12 sm:pt-16 md:pt-20' : 'pt-16 sm:pt-24 md:pt-32'
+  const usePendingPadding = isPendingPage || isPending
+  const topPadding = usePendingPadding ? 'pt-12 sm:pt-16 md:pt-20' : 'pt-16 sm:pt-24 md:pt-32'
 
   if (loading || (user && profileLoading)) {
     return (
