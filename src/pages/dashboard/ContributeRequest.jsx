@@ -10,6 +10,7 @@ function ContributeRequest() {
   const [selectedRequest, setSelectedRequest] = useState(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState('')
   const [imageZoom, setImageZoom] = useState(1)
+  const [feedbackNote, setFeedbackNote] = useState('')
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
@@ -77,6 +78,7 @@ function ContributeRequest() {
 
       const data = await response.json()
       setSelectedRequest(data)
+      setFeedbackNote('')
     } catch (err) {
       setDetailError(err?.message || 'Failed to load contribution details.')
       setSelectedRequest(null)
@@ -101,7 +103,7 @@ function ContributeRequest() {
           authorization: `Bearer ${token}`,
           'content-type': 'application/json',
         },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, feedback: feedbackNote }),
       })
 
       if (!response.ok) {
@@ -110,6 +112,7 @@ function ContributeRequest() {
 
       setRequests((prev) => prev.filter((item) => item._id !== selectedRequest._id))
       setSelectedRequest(null)
+      setFeedbackNote('')
     } catch (err) {
       setDetailError(err?.message || 'Failed to update request.')
     } finally {
@@ -207,6 +210,7 @@ function ContributeRequest() {
                   setDetailError('')
                   setDetailLoading(false)
                   setImagePreviewUrl('')
+                  setFeedbackNote('')
                 }}
               >
                 Close
@@ -307,6 +311,19 @@ function ContributeRequest() {
                 <div className="flex items-center justify-between rounded-xl border border-[#E2E8F0] px-3 py-2">
                   <span className="text-[#64748B]">Comment</span>
                   <span className="font-semibold text-[#0F172A]">{selectedRequest.uploaderComment || '--'}</span>
+                </div>
+                <div className="rounded-xl border border-[#E2E8F0] px-3 py-2">
+                  <label className="text-xs font-semibold text-[#64748B]" htmlFor="request-feedback">
+                    Feedback (optional)
+                  </label>
+                  <textarea
+                    id="request-feedback"
+                    rows="2"
+                    className="mt-2 w-full rounded-lg border border-[#E2E8F0] px-2.5 py-1.5 text-xs text-[#475569] outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/20"
+                    placeholder="Share feedback before approval..."
+                    value={feedbackNote}
+                    onChange={(event) => setFeedbackNote(event.target.value)}
+                  />
                 </div>
                 <div className="flex gap-2 pt-2">
                   <button

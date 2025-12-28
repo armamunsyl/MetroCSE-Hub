@@ -263,45 +263,65 @@ const Question = () => {
             <div className="px-4 py-6 text-sm text-[#64748B]">No approved questions found.</div>
           ) : (
             pageRows.map((row) => (
-              <Link
-                key={row._id}
-                to={`/question/${row._id}`}
-                className="flex items-center gap-4 px-4 py-4 transition hover:bg-[#F8FAFC]"
-              >
-                <div className="relative grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-[#E5E7EB] bg-[#EEF2FF] text-[#1E3A8A]">
-                  {row.uploaderImage ? (
-                    <img
-                      src={row.uploaderImage}
-                      alt={row.uploaderName || 'Uploader'}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <span className="text-sm font-semibold">{getInitials(row.uploaderName)}</span>
-                  )}
+              <div key={row._id} className="px-4 py-4 transition hover:bg-[#F8FAFC]">
+                <div className="flex items-start justify-between gap-3 sm:hidden">
+                  <Link to={`/question/${row._id}`} className="flex-1">
+                    <div className="text-sm font-semibold text-[#0F172A]">
+                      {row.subjectName || '--'}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[#64748B]">
+                      <span>{row.batch ? `CSE ${row.batch}` : 'CSE --'}</span>
+                      <span>Sec {row.section || '--'}</span>
+                      <span>{row.type || '--'}</span>
+                    </div>
+                  </Link>
+                  <Link
+                    to={`/question/${row._id}`}
+                    className="rounded-lg border border-[#E5E7EB] px-3 py-1 text-xs font-semibold text-[#1E3A8A] transition hover:bg-[#1E3A8A] hover:text-white"
+                  >
+                    Details
+                  </Link>
                 </div>
-                <div className="flex-1">
-                  <div className="text-sm font-semibold text-[#0F172A] sm:text-base">
-                    {row.subjectName || '--'}
-                    <span className="text-[#94A3B8]">,</span>{' '}
-                    {row.batch ? `CSE ${row.batch}` : 'CSE --'}
+
+                <Link
+                  to={`/question/${row._id}`}
+                  className="hidden items-center gap-4 sm:flex"
+                >
+                  <div className="relative grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-[#E5E7EB] bg-[#EEF2FF] text-[#1E3A8A]">
+                    {row.uploaderImage ? (
+                      <img
+                        src={row.uploaderImage}
+                        alt={row.uploaderName || 'Uploader'}
+                        className="absolute inset-0 h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="text-sm font-semibold">{getInitials(row.uploaderName)}</span>
+                    )}
                   </div>
-                  <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2 text-xs text-[#64748B]">
-                    <span className="max-w-[140px] truncate font-semibold text-[#0F172A] sm:max-w-none sm:truncate-none">
-                      {row.uploaderName || 'Unknown'}
-                    </span>
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-[#475569]">
-                      {row.uploaderBatch ? `CSE ${row.uploaderBatch}` : 'CSE --'}
-                    </span>
-                    <span className="rounded-full bg-[#EEF2FF] px-2 py-0.5 text-[11px] font-semibold text-[#1E3A8A]">
-                      {row.uploaderRole || 'Student'}
-                    </span>
-                    <span className="hidden rounded-full bg-[#ECFEFF] px-2 py-0.5 text-[11px] font-semibold text-[#0F766E] sm:inline-flex">
-                      Score {row.uploaderScore ?? 0}
-                    </span>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-[#0F172A] sm:text-base">
+                      {row.subjectName || '--'}
+                      <span className="text-[#94A3B8]">,</span>{' '}
+                      {row.batch ? `CSE ${row.batch}` : 'CSE --'}
+                    </div>
+                    <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2 text-xs text-[#64748B]">
+                      <span className="max-w-[140px] truncate font-semibold text-[#0F172A] sm:max-w-none sm:truncate-none">
+                        {row.uploaderName || 'Unknown'}
+                      </span>
+                      <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-[#475569]">
+                        {row.uploaderBatch ? `CSE ${row.uploaderBatch}` : 'CSE --'}
+                      </span>
+                      <span className="rounded-full bg-[#EEF2FF] px-2 py-0.5 text-[11px] font-semibold text-[#1E3A8A]">
+                        {row.uploaderRole || 'Student'}
+                      </span>
+                      <span className="hidden rounded-full bg-[#ECFEFF] px-2 py-0.5 text-[11px] font-semibold text-[#0F766E] sm:inline-flex">
+                        Score {row.uploaderScore ?? 0}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </div>
             ))
           )}
         </div>
