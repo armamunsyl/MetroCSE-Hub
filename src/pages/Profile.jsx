@@ -14,6 +14,11 @@ function Profile() {
   const [avatarPreview, setAvatarPreview] = useState('')
   const [avatarError, setAvatarError] = useState('')
   const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
+  const avatarStorageKey = useMemo(() => {
+    if (!user) return 'profile-avatar'
+    const identifier = user?.uid || user?.email || 'anonymous'
+    return `profile-avatar:${identifier}`
+  }, [user?.uid, user?.email])
 
   useEffect(() => {
     const token = localStorage.getItem('access-token')
@@ -131,7 +136,8 @@ function Profile() {
 
       const cacheBustedUrl = `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}v=${Date.now()}`
       await updateUserProfile(displayProfile.name, imageUrl)
-      localStorage.setItem('profile-avatar', cacheBustedUrl)
+      localStorage.removeItem('profile-avatar')
+      localStorage.setItem(avatarStorageKey, cacheBustedUrl)
       window.dispatchEvent(new Event('profile-avatar-updated'))
       setProfile((prev) => (prev ? { ...prev, imageUrl: cacheBustedUrl } : prev))
       setModalOpen(false)

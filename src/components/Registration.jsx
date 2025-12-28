@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../Provider/AuthProvider.jsx'
+import { deleteUser } from 'firebase/auth'
 
 const idSlots = Array.from({ length: 9 }, (_, index) => index)
 
@@ -59,6 +60,7 @@ function Registration() {
     setError('')
     setIdError('')
     setSubmitting(true)
+    let createdUser = null
 
     const form = event.currentTarget
     const name = form.name?.value?.trim()
@@ -90,8 +92,6 @@ function Registration() {
         return
       }
 
-      await createUser(email, password)
-
       const jwtResponse = await fetch(`${apiBaseUrl}/jwt`, {
         method: 'POST',
         headers: {
@@ -107,6 +107,7 @@ function Registration() {
       const jwtData = await jwtResponse.json()
       if (jwtData?.token) {
         localStorage.setItem('access-token', jwtData.token)
+        window.dispatchEvent(new Event('auth-token-updated'))
       }
 
       let imageUrl = ''
@@ -128,6 +129,9 @@ function Registration() {
         const uploadData = await uploadResponse.json()
         imageUrl = uploadData?.url || ''
       }
+
+      const credential = await createUser(email, password)
+      createdUser = credential?.user || null
 
       await updateUserProfile(name, imageUrl)
 
@@ -156,6 +160,15 @@ function Registration() {
 
       navigate('/')
     } catch (err) {
+      localStorage.removeItem('access-token')
+      window.dispatchEvent(new Event('auth-token-updated'))
+      if (createdUser) {
+        try {
+          await deleteUser(createdUser)
+        } catch {
+          // Ignore cleanup errors; we'll surface the original error.
+        }
+      }
       const message =
         err?.message === 'Failed to fetch'
           ? `Cannot reach server at ${apiBaseUrl}. Check backend is running.`
@@ -213,7 +226,7 @@ function Registration() {
               ) : null}
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <div>
                 <label className="text-xs font-semibold text-[#334155] sm:text-sm" htmlFor="reg-batch">
                   Batch

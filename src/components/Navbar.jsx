@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import {
   HiOutlineBell,
@@ -65,11 +65,18 @@ const dashboardMenuByRole = {
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const { user, loading } = useContext(AuthContext)
-  const { profile } = useUserProfile()
-  const [avatarUrl, setAvatarUrl] = useState(user?.photoURL || '/profile-avatar.jpg')
+  const { user, loading, logOut } = useContext(AuthContext)
+  const { profile, loading: profileLoading } = useUserProfile()
+  const [avatarUrl, setAvatarUrl] = useState('/profile-avatar.jpg')
   const avatarAlt = user?.displayName || 'Profile'
-  const [avatarLoaded, setAvatarLoaded] = useState(false)
+  const handleAvatarError = useCallback(() => {
+    setAvatarUrl('/profile-avatar.jpg')
+  }, [])
+  const avatarStorageKey = useMemo(() => {
+    if (!user) return ''
+    const identifier = user?.uid || user?.email || 'anonymous'
+    return `profile-avatar:${identifier}`
+  }, [user?.uid, user?.email])
   const initials = useMemo(() => {
     const name = user?.displayName || ''
     return name
@@ -83,7 +90,16 @@ function Navbar() {
 
   useEffect(() => {
     const syncAvatar = () => {
-      const storedAvatar = localStorage.getItem('profile-avatar')
+      localStorage.removeItem('profile-avatar')
+      if (!user) {
+        setAvatarUrl('/profile-avatar.jpg')
+        return
+      }
+      if (profile?.imageUrl) {
+        setAvatarUrl(profile.imageUrl)
+        return
+      }
+      const storedAvatar = avatarStorageKey ? localStorage.getItem(avatarStorageKey) : null
       if (storedAvatar) {
         setAvatarUrl(storedAvatar)
         return
@@ -94,13 +110,13 @@ function Navbar() {
     syncAvatar()
     window.addEventListener('profile-avatar-updated', syncAvatar)
     return () => window.removeEventListener('profile-avatar-updated', syncAvatar)
-  }, [user?.photoURL])
-
-  useEffect(() => {
-    setAvatarLoaded(false)
-  }, [avatarUrl])
+  }, [avatarStorageKey, profile?.imageUrl, user, user?.photoURL])
 
   const dashboardMenuItems = dashboardMenuByRole[profile?.role?.toLowerCase() || 'student'] || []
+  const isPending = String(profile?.status || '').toLowerCase() === 'pending'
+  const showNavLinks = Boolean(user) && !profileLoading && !isPending
+  const showAuthButtons = !loading && !user
+  const showPendingActions = !loading && !profileLoading && user && isPending
 
   return (
     <header
@@ -117,111 +133,158 @@ function Navbar() {
           </div>
         </div>
 
-        <nav className="hidden items-center gap-4 text-sm font-semibold text-[#475569] md:flex">
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              [
-                'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
-                isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
-              ].join(' ')
-            }
-          >
-            Home
-          </NavLink>
-          <NavLink
-            to="/tools"
-            className={({ isActive }) =>
-              [
-                'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
-                isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
-              ].join(' ')
-            }
-          >
-            Tools
-          </NavLink>
-          <NavLink
-            to="/question"
-            className={({ isActive }) =>
-              [
-                'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
-                isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
-              ].join(' ')
-            }
-          >
-            Question Bank
-          </NavLink>
-          <NavLink
-            to="/notice"
-            className={({ isActive }) =>
-              [
-                'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
-                isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
-              ].join(' ')
-            }
-          >
-            Notice
-          </NavLink>
-          <NavLink
-            to="/dashboard"
-            className={({ isActive }) =>
-              [
-                'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
-                isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
-              ].join(' ')
-            }
-          >
-            Dashboard
-          </NavLink>
-          {loading ? null : user ? (
-            <Link
-              to="/profile"
-              className="flex items-center gap-2 rounded-full border border-[#E5E7EB] px-2.5 py-1.5 shadow-[0_6px_14px_rgba(15,23,42,0.12)]"
+        {showNavLinks ? (
+          <nav className="hidden items-center gap-4 text-sm font-semibold text-[#475569] md:flex">
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                [
+                  'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
+                  isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+                ].join(' ')
+              }
             >
+              Home
+            </NavLink>
+            <NavLink
+              to="/tools"
+              className={({ isActive }) =>
+                [
+                  'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
+                  isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+                ].join(' ')
+              }
+            >
+              Tools
+            </NavLink>
+            <NavLink
+              to="/question"
+              className={({ isActive }) =>
+                [
+                  'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
+                  isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+                ].join(' ')
+              }
+            >
+              Question Bank
+            </NavLink>
+            <NavLink
+              to="/notice"
+              className={({ isActive }) =>
+                [
+                  'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
+                  isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+                ].join(' ')
+              }
+            >
+              Notice
+            </NavLink>
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) =>
+                [
+                  'whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:text-[#1E3A8A]',
+                  isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+                ].join(' ')
+              }
+            >
+              Dashboard
+            </NavLink>
+            {loading ? null : (
+              <Link
+                to="/profile"
+                className="flex items-center gap-2 rounded-full border border-[#E5E7EB] px-2.5 py-1.5 shadow-[0_6px_14px_rgba(15,23,42,0.12)]"
+              >
               <span className="relative grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-[#E0E7FF] text-[11px] font-semibold text-[#1E3A8A]">
                 {initials || 'U'}
                 <img
                   src={avatarUrl}
                   alt={avatarAlt}
-                  className={`absolute inset-0 h-full w-full rounded-full object-cover transition-opacity ${
-                    avatarLoaded ? 'opacity-100' : 'opacity-0'
-                  }`}
-                  onLoad={() => setAvatarLoaded(true)}
+                  className="absolute inset-0 h-full w-full rounded-full object-cover"
+                  onError={handleAvatarError}
                   loading="eager"
                 />
               </span>
-              <span className="max-w-[120px] truncate text-sm font-semibold text-[#1E3A8A]">
-                {user?.displayName || 'Profile'}
-              </span>
-            </Link>
-          ) : (
-            <Link to="/login">
+                <span className="max-w-[120px] truncate text-sm font-semibold text-[#1E3A8A]">
+                  {user?.displayName || 'Profile'}
+                </span>
+              </Link>
+            )}
+          </nav>
+        ) : (
+          <div className="hidden items-center gap-3 md:flex">
+            {showAuthButtons ? (
+              <>
+                <Link
+                  to="/login"
+                  className="rounded-xl bg-[#1E3A8A] px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:brightness-90"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="rounded-xl border border-[#E5E7EB] px-4 py-2 text-sm font-semibold text-[#1E3A8A] shadow-[0_8px_16px_rgba(15,23,42,0.08)] hover:bg-[#F8FAFC]"
+                >
+                  Register
+                </Link>
+              </>
+            ) : showPendingActions ? (
               <button
-                className="rounded-xl bg-[#1E3A8A] px-5 py-2.5 text-left text-white shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:brightness-90"
                 type="button"
+                onClick={() => logOut()}
+                className="rounded-xl bg-[#1E3A8A] px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:brightness-90"
               >
-                Login
+                Log out
               </button>
-            </Link>
-          )}
-        </nav>
+            ) : null}
+          </div>
+        )}
 
-        <button
-          className="group inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#E5E7EB] bg-white text-[#1E3A8A] shadow-[0_6px_12px_rgba(0,0,0,0.08)] transition hover:text-[#1E3A8A] md:hidden"
-          type="button"
-          aria-label="Toggle menu"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          <span className="relative flex h-5 w-5 flex-col items-center justify-between">
-            <span className="h-0.5 w-full rounded-full bg-current transition group-hover:w-4" />
-            <span className="h-0.5 w-full rounded-full bg-current" />
-            <span className="h-0.5 w-3/4 self-end rounded-full bg-current transition group-hover:w-full" />
-          </span>
-        </button>
+        {showNavLinks ? (
+          <button
+            className="group inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#E5E7EB] bg-white text-[#1E3A8A] shadow-[0_6px_12px_rgba(0,0,0,0.08)] transition hover:text-[#1E3A8A] md:hidden"
+            type="button"
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span className="relative flex h-5 w-5 flex-col items-center justify-between">
+              <span className="h-0.5 w-full rounded-full bg-current transition group-hover:w-4" />
+              <span className="h-0.5 w-full rounded-full bg-current" />
+              <span className="h-0.5 w-3/4 self-end rounded-full bg-current transition group-hover:w-full" />
+            </span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 md:hidden">
+            {showAuthButtons ? (
+              <>
+                <Link
+                  to="/login"
+                  className="rounded-full bg-[#1E3A8A] px-4 py-2 text-xs font-semibold text-white shadow-[0_8px_16px_rgba(0,0,0,0.12)]"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="rounded-full border border-[#E5E7EB] px-4 py-2 text-xs font-semibold text-[#1E3A8A] shadow-[0_8px_16px_rgba(15,23,42,0.08)]"
+                >
+                  Register
+                </Link>
+              </>
+            ) : showPendingActions ? (
+              <button
+                type="button"
+                onClick={() => logOut()}
+                className="rounded-full bg-[#1E3A8A] px-4 py-2 text-xs font-semibold text-white shadow-[0_8px_16px_rgba(0,0,0,0.12)]"
+              >
+                Log out
+              </button>
+            ) : null}
+          </div>
+        )}
       </div>
 
-      {menuOpen && (
+      {showNavLinks && menuOpen && (
         <div className="fixed left-0 top-0 z-50 h-screen w-screen md:hidden">
           <button
             type="button"
@@ -245,10 +308,8 @@ function Navbar() {
                   <img
                     src={avatarUrl}
                     alt={avatarAlt}
-                    className={`absolute inset-0 h-full w-full rounded-full object-cover transition-opacity ${
-                      avatarLoaded ? 'opacity-100' : 'opacity-0'
-                    }`}
-                    onLoad={() => setAvatarLoaded(true)}
+                    className="absolute inset-0 h-full w-full rounded-full object-cover"
+                    onError={handleAvatarError}
                     loading="eager"
                   />
                 </span>

@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import Layout from '../Layout/Layout'
 import ErrorPage from '../components/ErrorPage'
-import Home from '../pages/Home'
+import LandingGate from '../pages/LandingGate.jsx'
 import AllBatch from '../pages/AllBatch'
 import Question from '../pages/Question'
 import Profile from '../pages/Profile'
@@ -26,6 +26,7 @@ import UserFeedback from '../pages/dashboard/UserFeedback.jsx'
 import ReportedObject from '../pages/dashboard/ReportedObject.jsx'
 import AddBanner from '../pages/dashboard/AddBanner.jsx'
 import Analytics from '../pages/dashboard/Analytics.jsx'
+import PendingApproval from '../pages/PendingApproval.jsx'
 
 const router = createBrowserRouter([
   {
@@ -35,23 +36,39 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: Home,
+        Component: LandingGate,
       },
       {
         path: '/all-batch',
-        Component: AllBatch,
+        element: (
+          <PrivateRoute>
+            <AllBatch />
+          </PrivateRoute>
+        ),
       },
       {
         path: '/question',
-        Component: Question,
+        element: (
+          <PrivateRoute>
+            <Question />
+          </PrivateRoute>
+        ),
       },
       {
         path: '/notice',
-        Component: Notice,
+        element: (
+          <PrivateRoute>
+            <Notice />
+          </PrivateRoute>
+        ),
       },
       {
         path: '/tools',
-        Component: Tools,
+        element: (
+          <PrivateRoute>
+            <Tools />
+          </PrivateRoute>
+        ),
       },
       {
         path: '/login',
@@ -62,8 +79,20 @@ const router = createBrowserRouter([
         Component: Registration,
       },
       {
+        path: '/pending',
+        element: (
+          <PrivateRoute allowPending>
+            <PendingApproval />
+          </PrivateRoute>
+        ),
+      },
+      {
         path: '/profile',
-        Component: Profile,
+        element: (
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        ),
       },
       {
         path: '/dashboard',

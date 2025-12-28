@@ -1,12 +1,13 @@
 import { useContext } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
 import { AuthContext } from '../Provider/AuthProvider.jsx'
 import useUserProfile from '../hooks/useUserProfile.js'
+import Home from './Home.jsx'
+import PublicLanding from './PublicLanding.jsx'
+import PendingApproval from './PendingApproval.jsx'
 
-function PrivateRoute({ children, allowPending = false }) {
+function LandingGate() {
   const { user, loading } = useContext(AuthContext)
   const { profile, loading: profileLoading } = useUserProfile()
-  const location = useLocation()
 
   if (loading || profileLoading) {
     return (
@@ -16,15 +17,16 @@ function PrivateRoute({ children, allowPending = false }) {
     )
   }
 
-  if (user) {
-    const status = String(profile?.status || '').toLowerCase()
-    if (!allowPending && status === 'pending') {
-      return <Navigate to="/pending" state={{ from: location }} replace />
-    }
-    return children
+  if (!user) {
+    return <PublicLanding />
   }
 
-  return <Navigate to="/" state={{ from: location }} replace />
+  const status = String(profile?.status || '').toLowerCase()
+  if (status === 'pending') {
+    return <PendingApproval />
+  }
+
+  return <Home />
 }
 
-export default PrivateRoute
+export default LandingGate

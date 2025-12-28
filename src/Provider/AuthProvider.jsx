@@ -48,12 +48,18 @@ const AuthProvider = ({ children }) => {
 
     const logOut = () => {
         setLoading(true);
+        localStorage.removeItem('access-token');
+        window.dispatchEvent(new Event('auth-token-updated'));
         return signOut(auth);
     };
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
+            if (!currentUser) {
+                localStorage.removeItem('access-token');
+                window.dispatchEvent(new Event('auth-token-updated'));
+            }
             setLoading(false);
         });
         return () => unsubscribe();

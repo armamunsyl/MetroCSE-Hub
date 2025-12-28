@@ -8,6 +8,30 @@ function Login() {
   const location = useLocation()
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
+
+  const ensureJwt = async (email) => {
+    if (!email) {
+      throw new Error('Missing email for token request.')
+    }
+    const jwtResponse = await fetch(`${apiBaseUrl}/jwt`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    })
+
+    if (!jwtResponse.ok) {
+      throw new Error('Failed to get access token.')
+    }
+
+    const jwtData = await jwtResponse.json()
+    if (jwtData?.token) {
+      localStorage.setItem('access-token', jwtData.token)
+      window.dispatchEvent(new Event('auth-token-updated'))
+    }
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -24,7 +48,9 @@ function Login() {
     }
 
     try {
-      await loginUser(email, password)
+      const credential = await loginUser(email, password)
+      const accountEmail = credential?.user?.email || email
+      await ensureJwt(accountEmail)
       const redirectTo = location.state?.from?.pathname || '/'
       navigate(redirectTo, { replace: true })
     } catch (err) {
@@ -38,7 +64,9 @@ function Login() {
     setError('')
     setSubmitting(true)
     try {
-      await googleLogin()
+      const credential = await googleLogin()
+      const accountEmail = credential?.user?.email
+      await ensureJwt(accountEmail)
       const redirectTo = location.state?.from?.pathname || '/'
       navigate(redirectTo, { replace: true })
     } catch (err) {

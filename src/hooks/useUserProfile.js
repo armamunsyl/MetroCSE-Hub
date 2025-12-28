@@ -8,11 +8,26 @@ function useUserProfile() {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [tokenVersion, setTokenVersion] = useState(0)
+
+  useEffect(() => {
+    const handleTokenUpdate = () => {
+      setTokenVersion((version) => version + 1)
+    }
+    window.addEventListener('auth-token-updated', handleTokenUpdate)
+    return () => window.removeEventListener('auth-token-updated', handleTokenUpdate)
+  }, [])
 
   useEffect(() => {
     const token = localStorage.getItem('access-token')
-    if (!token || !user?.email) {
+    if (!user?.email) {
+      setProfile(null)
       setLoading(false)
+      return
+    }
+    if (!token) {
+      setProfile(null)
+      setLoading(true)
       return
     }
 
@@ -39,7 +54,7 @@ function useUserProfile() {
     }
 
     fetchProfile()
-  }, [user?.email])
+  }, [tokenVersion, user?.email])
 
   return { profile, loading, error }
 }
