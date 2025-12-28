@@ -176,8 +176,8 @@ function QuestionDetails() {
                 </div>
                 <div
                   className={[
-                    'mt-3 flex min-h-[280px] items-center justify-center rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-3',
-                    isZoomed ? 'overflow-auto' : 'overflow-hidden',
+                    'mt-3 flex min-h-[280px] rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-3',
+                    isZoomed ? 'items-start justify-start overflow-auto' : 'items-center justify-center overflow-hidden',
                   ].join(' ')}
                 >
                   {question.questionImageUrl ? (
@@ -185,7 +185,11 @@ function QuestionDetails() {
                       src={question.questionImageUrl}
                       alt="Question"
                       className="h-auto max-w-none object-contain"
-                      style={{ width: `${imageZoom * 100}%` }}
+                      style={{
+                        width: '100%',
+                        transform: `scale(${imageZoom})`,
+                        transformOrigin: 'top left',
+                      }}
                     />
                   ) : (
                     <div className="text-sm text-[#94A3B8]">No image uploaded for this question.</div>
@@ -314,8 +318,8 @@ function QuestionDetails() {
 
               <div
                 className={[
-                  'mt-4 flex min-h-[320px] items-center justify-center rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-3',
-                  isZoomed ? 'overflow-auto' : 'overflow-hidden',
+                  'mt-4 flex min-h-[320px] rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-3',
+                  isZoomed ? 'items-start justify-start overflow-auto' : 'items-center justify-center overflow-hidden',
                 ].join(' ')}
               >
                 {question.questionImageUrl ? (
@@ -323,7 +327,11 @@ function QuestionDetails() {
                     src={question.questionImageUrl}
                     alt="Question"
                     className="h-auto max-w-none object-contain"
-                    style={{ width: `${imageZoom * 100}%` }}
+                    style={{
+                      width: '100%',
+                      transform: `scale(${imageZoom})`,
+                      transformOrigin: 'top left',
+                    }}
                   />
                 ) : (
                   <div className="text-sm text-[#94A3B8]">No image uploaded for this question.</div>
