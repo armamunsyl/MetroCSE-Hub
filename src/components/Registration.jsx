@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../Provider/AuthProvider.jsx'
 import { deleteUser } from 'firebase/auth'
+import toast from 'react-hot-toast'
 
 const idSlots = Array.from({ length: 9 }, (_, index) => index)
 
@@ -112,22 +113,26 @@ function Registration() {
 
       let imageUrl = ''
       if (avatarFile) {
-        const imageData = new FormData()
-        imageData.append('image', avatarFile)
-        const uploadResponse = await fetch(`${apiBaseUrl}/upload/avatar`, {
-          method: 'POST',
-          headers: {
-            authorization: `Bearer ${jwtData?.token || ''}`,
-          },
-          body: imageData,
-        })
+        try {
+          const imageData = new FormData()
+          imageData.append('image', avatarFile)
+          const uploadResponse = await fetch(`${apiBaseUrl}/upload/avatar`, {
+            method: 'POST',
+            headers: {
+              authorization: `Bearer ${jwtData?.token || ''}`,
+            },
+            body: imageData,
+          })
 
-        if (!uploadResponse.ok) {
-          throw new Error('Failed to upload profile image.')
+          if (!uploadResponse.ok) {
+            throw new Error('Failed to upload profile image.')
+          }
+
+          const uploadData = await uploadResponse.json()
+          imageUrl = uploadData?.url || ''
+        } catch (uploadError) {
+          toast.error('Profile image upload failed. You can update it later.')
         }
-
-        const uploadData = await uploadResponse.json()
-        imageUrl = uploadData?.url || ''
       }
 
       const credential = await createUser(email, password)

@@ -1,10 +1,50 @@
+import { useEffect, useState } from 'react'
+
+const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
+
 const stats = [
   { key: 'questions', value: '1,250+', label: 'Total Questions', icon: 'Q', tone: 'stat-blue' },
   { key: 'batches', value: '18', label: 'Total Batches', icon: 'B', tone: 'stat-green' },
   { key: 'contributors', value: '60+', label: 'Contributors', icon: 'C', tone: 'stat-amber' },
 ]
 
+const defaultBanners = [
+  { src: '/hero.png', alt: 'MetroCSE banner one' },
+  { src: '/hero1.png', alt: 'MetroCSE banner two' },
+]
+
 function Hero() {
+  const [banners, setBanners] = useState([])
+
+  useEffect(() => {
+    let isMounted = true
+    const fetchBanners = async () => {
+      try {
+        const response = await fetch(`${apiBaseUrl}/banners`)
+        if (!response.ok) return
+        const data = await response.json()
+        if (!isMounted) return
+        setBanners(Array.isArray(data) ? data : [])
+      } catch (error) {
+        // Fail silently to keep default banners
+      }
+    }
+    fetchBanners()
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const bannerItems = banners.length
+    ? banners.map((banner) => ({
+        src: banner.imageUrl,
+        alt: banner.title || 'MetroCSE banner',
+        linkUrl: banner.linkUrl || '',
+      }))
+    : defaultBanners
+  const displayBanners =
+    bannerItems.length >= 2 ? bannerItems.slice(0, 2) : bannerItems.length === 1 ? [bannerItems[0], bannerItems[0]] : []
+
   return (
     <section
       className="grid items-center gap-8 lg:grid-cols-2 animate-fade-up"
@@ -13,17 +53,25 @@ function Hero() {
       <div>
         <div className="overflow-hidden  sm:hidden">
           <div className="flex w-[200%] animate-slide-loop">
-            {[{ src: '/hero.png', alt: 'MetroCSE banner one' }, { src: '/hero1.png', alt: 'MetroCSE banner two' }].map(
-              (item) => (
-                <div key={item.src} className="w-1/2">
+            {displayBanners.map((item, index) => (
+              <div key={`${item.src}-${index}`} className="w-1/2">
+                {item.linkUrl ? (
+                  <a href={item.linkUrl} target="_blank" rel="noreferrer">
+                    <img
+                      src={item.src}
+                      alt={item.alt}
+                      className="h-[220px] w-full rounded-2xl object-contain"
+                    />
+                  </a>
+                ) : (
                   <img
                     src={item.src}
                     alt={item.alt}
                     className="h-[220px] w-full rounded-2xl object-contain"
                   />
-                </div>
-              ),
-            )}
+                )}
+              </div>
+            ))}
           </div>
         </div>
         <svg

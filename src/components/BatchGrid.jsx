@@ -6,10 +6,10 @@ function BatchGrid({ batches }) {
     <div>
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-4">
         {mobileBatches.map((batch) => (
-          <button
+          <Link
             key={batch.id}
+            to={`/question?batch=${batch.id}`}
             className="relative flex flex-col items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white px-3 py-4 text-center shadow-[0_8px_16px_rgba(0,0,0,0.06)] transition hover:-translate-y-1 hover:border-[#1E3A8A] hover:shadow-[0_12px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:gap-4 sm:p-4 sm:text-left"
-            type="button"
           >
             <div className="grid h-12 w-12 place-items-center rounded-xl bg-white sm:h-11 sm:w-11">
               <svg viewBox="0 0 48 48" aria-hidden="true">
@@ -28,13 +28,13 @@ function BatchGrid({ batches }) {
             <span className="absolute right-3 top-3 rounded-lg bg-[#1E3A8A] px-2 py-1 text-xs font-semibold text-white">
               {batch.id}
             </span>
-          </button>
+          </Link>
         ))}
         {batches.slice(6).map((batch) => (
-          <button
+          <Link
             key={batch.id}
+            to={`/question?batch=${batch.id}`}
             className="relative hidden flex-col items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white px-3 py-4 text-center shadow-[0_8px_16px_rgba(0,0,0,0.06)] transition hover:-translate-y-1 hover:border-[#1E3A8A] hover:shadow-[0_12px_20px_rgba(0,0,0,0.08)] sm:flex sm:flex-row sm:items-center sm:gap-4 sm:p-4 sm:text-left"
-            type="button"
           >
             <div className="grid h-12 w-12 place-items-center rounded-xl bg-white sm:h-11 sm:w-11">
               <svg viewBox="0 0 48 48" aria-hidden="true">
@@ -53,7 +53,7 @@ function BatchGrid({ batches }) {
             <span className="absolute right-3 top-3 rounded-lg bg-[#1E3A8A] px-2 py-1 text-xs font-semibold text-white">
               {batch.id}
             </span>
-          </button>
+          </Link>
         ))}
       </div>
       <div className="mt-4 flex justify-center sm:hidden">

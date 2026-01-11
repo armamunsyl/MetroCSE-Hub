@@ -10,6 +10,7 @@ const tools = [
     title: 'CGPA Calculator',
     description: 'Calculate your CGPA instantly',
     accent: 'tool-amber',
+    path: '/tools/cgpa',
   },
   {
     title: 'CV Templates',

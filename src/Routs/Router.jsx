@@ -7,7 +7,9 @@ import Question from '../pages/Question'
 import QuestionDetails from '../pages/QuestionDetails.jsx'
 import Profile from '../pages/Profile'
 import Tools from '../pages/Tools'
+import CgpaCalculator from '../Tools/CgpaCalculator.jsx'
 import Notice from '../pages/Notice'
+import NoticeDetails from '../pages/NoticeDetails.jsx'
 import Login from '../components/Login'
 import Registration from '../components/Registration'
 import PrivateRoute from './PrivateRoute.jsx'
@@ -28,6 +30,7 @@ import ReportedObject from '../pages/dashboard/ReportedObject.jsx'
 import AddBanner from '../pages/dashboard/AddBanner.jsx'
 import Analytics from '../pages/dashboard/Analytics.jsx'
 import PendingApproval from '../pages/PendingApproval.jsx'
+import NoticeApproval from '../pages/dashboard/NoticeApproval.jsx'
 
 const router = createBrowserRouter([
   {
@@ -72,10 +75,26 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: '/notice/:id',
+        element: (
+          <PrivateRoute>
+            <NoticeDetails />
+          </PrivateRoute>
+        ),
+      },
+      {
         path: '/tools',
         element: (
           <PrivateRoute>
             <Tools />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: '/tools/cgpa',
+        element: (
+          <PrivateRoute>
+            <CgpaCalculator />
           </PrivateRoute>
         ),
       },
@@ -188,6 +207,14 @@ const router = createBrowserRouter([
             element: (
               <RoleRoute allow={['admin']}>
                 <AddBanner />
+              </RoleRoute>
+            ),
+          },
+          {
+            path: 'notice-approval',
+            element: (
+              <RoleRoute allow={['admin']}>
+                <NoticeApproval />
               </RoleRoute>
             ),
           },

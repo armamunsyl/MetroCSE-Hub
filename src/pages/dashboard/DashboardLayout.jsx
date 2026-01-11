@@ -40,6 +40,7 @@ const menuByRole = {
     { label: 'My Notice', to: '/dashboard/my-notice' },
     { label: 'My Comment', to: '/dashboard/my-comment' },
     { label: 'Account Approval', to: '/dashboard/account-approval' },
+    { label: 'Notice Approval', to: '/dashboard/notice-approval' },
     { label: 'User Feedback', to: '/dashboard/user-feedback' },
     { label: 'Reported Object', to: '/dashboard/reported-object' },
     { label: 'Add Banner', to: '/dashboard/add-banner' },

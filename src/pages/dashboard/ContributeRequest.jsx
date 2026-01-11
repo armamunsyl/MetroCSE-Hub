@@ -1,6 +1,8 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import { AuthContext } from '../../Provider/AuthProvider.jsx'
 import DashboardSection from './DashboardSection.jsx'
+import toast from 'react-hot-toast'
+import ConfirmModal from '../../components/ConfirmModal.jsx'
 
 function ContributeRequest() {
   const { user } = useContext(AuthContext)
@@ -9,11 +11,13 @@ function ContributeRequest() {
   const [error, setError] = useState('')
   const [selectedRequest, setSelectedRequest] = useState(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState('')
+  const [activePreviewIndex, setActivePreviewIndex] = useState(0)
   const [imageZoom, setImageZoom] = useState(1)
   const [feedbackNote, setFeedbackNote] = useState('')
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
+  const [pendingDecision, setPendingDecision] = useState('')
 
   const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
@@ -40,12 +44,13 @@ function ContributeRequest() {
 
         const data = await response.json()
         setRequests(data)
-      } catch (err) {
-        setError(err?.message || 'Failed to load contribution requests.')
-      } finally {
-        setLoading(false)
-      }
+    } catch (err) {
+      setError(err?.message || 'Failed to load contribution requests.')
+      toast.error(err?.message || 'Failed to load contribution requests.')
+    } finally {
+      setLoading(false)
     }
+  }
 
     fetchRequests()
   }, [user?.email])
@@ -56,10 +61,29 @@ function ContributeRequest() {
     }
   }, [imagePreviewUrl])
 
+  const requestImages = useMemo(() => {
+    const images = Array.isArray(selectedRequest?.questionImageUrls) ? selectedRequest.questionImageUrls : []
+    const primary = selectedRequest?.questionImageUrl ? [selectedRequest.questionImageUrl] : []
+    return [...images, ...primary].filter(Boolean)
+  }, [selectedRequest?.questionImageUrls, selectedRequest?.questionImageUrl])
+
+  useEffect(() => {
+    setActivePreviewIndex(0)
+    setImagePreviewUrl('')
+  }, [selectedRequest?._id])
+
+  const openPreviewAt = (index) => {
+    const url = requestImages[index]
+    if (!url) return
+    setActivePreviewIndex(index)
+    setImagePreviewUrl(url)
+  }
+
   const handleViewDetails = async (requestId) => {
     const token = localStorage.getItem('access-token')
     if (!token) {
       setDetailError('Unauthorized access.')
+      toast.error('Unauthorized access.')
       return
     }
 
@@ -81,6 +105,7 @@ function ContributeRequest() {
       setFeedbackNote('')
     } catch (err) {
       setDetailError(err?.message || 'Failed to load contribution details.')
+      toast.error(err?.message || 'Failed to load contribution details.')
       setSelectedRequest(null)
     } finally {
       setDetailLoading(false)
@@ -92,6 +117,7 @@ function ContributeRequest() {
     const token = localStorage.getItem('access-token')
     if (!token) {
       setDetailError('Unauthorized access.')
+      toast.error('Unauthorized access.')
       return
     }
 
@@ -110,11 +136,13 @@ function ContributeRequest() {
         throw new Error('Failed to update request.')
       }
 
+      toast.success(`Request ${normalizedAction === 'approve' ? 'approved' : 'rejected'}.`)
       setRequests((prev) => prev.filter((item) => item._id !== selectedRequest._id))
       setSelectedRequest(null)
       setFeedbackNote('')
     } catch (err) {
       setDetailError(err?.message || 'Failed to update request.')
+      toast.error(err?.message || 'Failed to update request.')
     } finally {
       setActionLoading(false)
     }
@@ -296,16 +324,35 @@ function ContributeRequest() {
                     </div>
                   </>
                 ) : null}
-                {selectedRequest.questionImageUrl ? (
-                  <div className="flex items-center justify-between rounded-xl border border-[#E2E8F0] px-3 py-2">
-                    <span className="text-[#64748B]">Question image</span>
-                    <button
-                      type="button"
-                      className="rounded-lg border border-[#E5E7EB] px-3 py-1 text-xs font-semibold text-[#1E3A8A] transition hover:bg-[#1E3A8A] hover:text-white"
-                      onClick={() => setImagePreviewUrl(selectedRequest.questionImageUrl)}
-                    >
-                      View
-                    </button>
+                {requestImages.length > 0 ? (
+                  <div className="rounded-xl border border-[#E2E8F0] px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#64748B]">Question images</span>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-[#E5E7EB] px-3 py-1 text-xs font-semibold text-[#1E3A8A] transition hover:bg-[#1E3A8A] hover:text-white"
+                        onClick={() => openPreviewAt(0)}
+                      >
+                        View
+                      </button>
+                    </div>
+                    {requestImages.length > 1 ? (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {requestImages.map((imageUrl, index) => (
+                          <button
+                            key={`${imageUrl}-${index}`}
+                            type="button"
+                            className={[
+                              'h-12 w-12 overflow-hidden rounded-lg border transition',
+                              index === activePreviewIndex ? 'border-[#1E3A8A]' : 'border-[#E2E8F0]',
+                            ].join(' ')}
+                            onClick={() => openPreviewAt(index)}
+                          >
+                            <img src={imageUrl} alt="Question thumbnail" className="h-full w-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
                 <div className="flex items-center justify-between rounded-xl border border-[#E2E8F0] px-3 py-2">
@@ -329,7 +376,7 @@ function ContributeRequest() {
                   <button
                     type="button"
                     className="flex-1 rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#0F172A] transition hover:bg-[#1E3A8A] hover:text-white disabled:opacity-60"
-                    onClick={() => handleDecision('reject')}
+                    onClick={() => setPendingDecision('reject')}
                     disabled={actionLoading}
                   >
                     Reject
@@ -337,7 +384,7 @@ function ContributeRequest() {
                   <button
                     type="button"
                     className="flex-1 rounded-xl bg-[#1E3A8A] px-3 py-2 text-xs font-semibold text-white shadow-[0_10px_20px_rgba(30,58,138,0.28)] transition hover:brightness-95 disabled:opacity-60"
-                    onClick={() => handleDecision('approve')}
+                    onClick={() => setPendingDecision('approve')}
                     disabled={actionLoading}
                   >
                     Approve
@@ -397,6 +444,23 @@ function ContributeRequest() {
                 </button>
               </div>
             </div>
+            {requestImages.length > 1 ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {requestImages.map((imageUrl, index) => (
+                  <button
+                    key={`${imageUrl}-${index}`}
+                    type="button"
+                    className={[
+                      'h-12 w-12 overflow-hidden rounded-lg border transition',
+                      index === activePreviewIndex ? 'border-[#1E3A8A]' : 'border-[#E2E8F0]',
+                    ].join(' ')}
+                    onClick={() => openPreviewAt(index)}
+                  >
+                    <img src={imageUrl} alt="Question thumbnail" className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <div className="mt-4 flex max-h-[60vh] items-center justify-center overflow-auto rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-2">
               <img
                 src={imagePreviewUrl}
@@ -408,6 +472,20 @@ function ContributeRequest() {
           </div>
         </div>
       ) : null}
+
+      <ConfirmModal
+        isOpen={Boolean(pendingDecision)}
+        title={pendingDecision === 'approve' ? 'Approve request?' : 'Reject request?'}
+        description="This action will update the request status."
+        confirmLabel={pendingDecision === 'approve' ? 'Approve' : 'Reject'}
+        onCancel={() => setPendingDecision('')}
+        onConfirm={() => {
+          const action = pendingDecision
+          setPendingDecision('')
+          handleDecision(action)
+        }}
+        isProcessing={actionLoading}
+      />
     </div>
   )
 }

@@ -27,7 +27,8 @@ function useUserProfile() {
     }
     if (!token) {
       setProfile(null)
-      setLoading(true)
+      setError('Unauthorized access.')
+      setLoading(false)
       return
     }
 

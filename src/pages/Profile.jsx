@@ -63,6 +63,31 @@ function Profile() {
     }
   }, [avatarPreview])
 
+  const ensureJwt = async (email) => {
+    if (!email) return null
+    const jwtResponse = await fetch(`${apiBaseUrl}/jwt`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+    if (!jwtResponse.ok) return null
+    const jwtData = await jwtResponse.json().catch(() => null)
+    if (jwtData?.token) {
+      localStorage.setItem('access-token', jwtData.token)
+      window.dispatchEvent(new Event('auth-token-updated'))
+      return jwtData.token
+    }
+    return null
+  }
+
+  const getToken = async () => {
+    let token = localStorage.getItem('access-token')
+    if (!token && user?.email) {
+      token = await ensureJwt(user.email)
+    }
+    return token
+  }
+
   const displayProfile = useMemo(() => {
     const fallbackName = user?.displayName || 'Student'
     const fallbackEmail = user?.email || ''
@@ -86,52 +111,87 @@ function Profile() {
 
   const handleAvatarUpload = async (event) => {
     event.preventDefault()
+    const form = event.currentTarget
+    const file = form?.elements?.avatar?.files?.[0]
+    if (!file) {
+      setAvatarError('Please select an image file.')
+      return
+    }
+    const maxSize = 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      setAvatarError('Image is too large. Max size is 5MB.')
+      return
+    }
+
     setAvatarError('')
-    const token = localStorage.getItem('access-token')
+    let token = await getToken()
     if (!token) {
       setAvatarError('Login required to update profile picture.')
       return
     }
 
-    const file = event.currentTarget.avatar?.files?.[0]
-    if (!file) {
-      setAvatarError('Please select an image file.')
-      return
-    }
-
     setUploading(true)
     try {
-      const formData = new FormData()
-      formData.append('image', file)
-      const uploadResponse = await fetch(`${apiBaseUrl}/upload/avatar`, {
-        method: 'POST',
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      })
-
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload profile image.')
+      const uploadAvatar = async (authToken) => {
+        const formData = new FormData()
+        formData.append('image', file)
+        const response = await fetch(`${apiBaseUrl}/upload/avatar`, {
+          method: 'POST',
+          headers: {
+            authorization: `Bearer ${authToken}`,
+          },
+          body: formData,
+        })
+        const data = await response.json().catch(() => null)
+        return { response, data }
       }
 
-      const uploadData = await uploadResponse.json()
+      let { response: uploadResponse, data: uploadData } = await uploadAvatar(token)
+      if (uploadResponse.status === 401 && user?.email) {
+        const refreshedToken = await ensureJwt(user.email)
+        if (refreshedToken) {
+          token = refreshedToken
+          const retryResult = await uploadAvatar(refreshedToken)
+          uploadResponse = retryResult.response
+          uploadData = retryResult.data
+        }
+      }
+
+      if (!uploadResponse.ok) {
+        throw new Error(uploadData?.message || 'Failed to upload profile image.')
+      }
+
       const imageUrl = uploadData?.url || ''
       if (!imageUrl) {
         throw new Error('Image upload failed.')
       }
 
-      const updateResponse = await fetch(`${apiBaseUrl}/users/profile/image`, {
-        method: 'PATCH',
-        headers: {
-          'content-type': 'application/json',
-          authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ imageUrl }),
-      })
+      const updateAvatar = async (authToken) => {
+        const response = await fetch(`${apiBaseUrl}/users/profile/image`, {
+          method: 'PATCH',
+          headers: {
+            'content-type': 'application/json',
+            authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ imageUrl }),
+        })
+        const data = await response.json().catch(() => null)
+        return { response, data }
+      }
+
+      let { response: updateResponse, data: updateData } = await updateAvatar(token)
+      if (updateResponse.status === 401 && user?.email) {
+        const refreshedToken = await ensureJwt(user.email)
+        if (refreshedToken) {
+          token = refreshedToken
+          const retryResult = await updateAvatar(refreshedToken)
+          updateResponse = retryResult.response
+          updateData = retryResult.data
+        }
+      }
 
       if (!updateResponse.ok) {
-        throw new Error('Failed to update profile.')
+        throw new Error(updateData?.message || 'Failed to update profile.')
       }
 
       const cacheBustedUrl = `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}v=${Date.now()}`
@@ -283,6 +343,9 @@ function Profile() {
                 onChange={(event) => {
                   const file = event.target.files?.[0]
                   if (file) {
+                    if (avatarPreview) {
+                      URL.revokeObjectURL(avatarPreview)
+                    }
                     const nextPreview = URL.createObjectURL(file)
                     setAvatarPreview(nextPreview)
                   } else {
