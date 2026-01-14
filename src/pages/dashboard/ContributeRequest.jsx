@@ -64,7 +64,8 @@ function ContributeRequest() {
   const requestImages = useMemo(() => {
     const images = Array.isArray(selectedRequest?.questionImageUrls) ? selectedRequest.questionImageUrls : []
     const primary = selectedRequest?.questionImageUrl ? [selectedRequest.questionImageUrl] : []
-    return [...images, ...primary].filter(Boolean)
+    const merged = [...images, ...primary].filter(Boolean)
+    return Array.from(new Set(merged))
   }, [selectedRequest?.questionImageUrls, selectedRequest?.questionImageUrl])
 
   useEffect(() => {

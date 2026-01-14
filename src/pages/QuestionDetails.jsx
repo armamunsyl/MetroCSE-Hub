@@ -140,7 +140,8 @@ function QuestionDetails() {
   const questionImages = useMemo(() => {
     const images = Array.isArray(question?.questionImageUrls) ? question.questionImageUrls : []
     const primary = question?.questionImageUrl ? [question.questionImageUrl] : []
-    return [...images, ...primary].filter(Boolean)
+    const merged = [...images, ...primary].filter(Boolean)
+    return Array.from(new Set(merged))
   }, [question?.questionImageUrls, question?.questionImageUrl])
 
   useEffect(() => {
