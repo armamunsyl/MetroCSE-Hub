@@ -149,6 +149,25 @@ const Layout = () => {
       <Navbar />
       <Outlet />
       <Footer />
+      <a
+        href="https://whatsapp.com/channel/0029VbAzdNb6RGJ8zhGZQr28"
+        target="_blank"
+        rel="noreferrer"
+        className="fixed bottom-6 right-6 z-40 grid h-12 w-12 place-items-center rounded-full bg-[#25D366] text-white shadow-[0_12px_24px_rgba(37,211,102,0.35)] transition hover:scale-105 sm:bottom-6 max-sm:bottom-24"
+        aria-label="Join our WhatsApp channel"
+      >
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#25D366]/60" />
+        <svg viewBox="0 0 32 32" className="relative h-6 w-6" aria-hidden="true">
+          <path
+            d="M19.1 17.8c-.2-.1-1.1-.5-1.3-.6-.2-.1-.3-.1-.5.1-.1.2-.5.6-.6.7-.1.1-.2.1-.4 0-.2-.1-.8-.3-1.5-1-.6-.6-1-1.2-1.1-1.4-.1-.2 0-.3.1-.4.1-.1.2-.2.3-.3.1-.1.1-.2.2-.3.1-.1.1-.2.2-.4.1-.2 0-.3 0-.4s-.5-1.2-.7-1.6c-.2-.4-.3-.3-.5-.3h-.4c-.1 0-.3 0-.5.2-.2.2-.6.6-.6 1.4 0 .8.6 1.6.7 1.7.1.1 1.2 1.9 3 2.7 1.7.7 1.7.5 2 .5.3 0 1-.4 1.1-.8.1-.4.1-.7.1-.8-.1-.1-.2-.1-.4-.2z"
+            fill="currentColor"
+          />
+          <path
+            d="M16 4.5C9.7 4.5 4.5 9.7 4.5 16c0 2.1.6 4.2 1.6 6L4.5 27.5l5.7-1.5c1.7 1 3.7 1.5 5.8 1.5 6.3 0 11.5-5.2 11.5-11.5S22.3 4.5 16 4.5zm0 21c-1.9 0-3.7-.5-5.2-1.4l-.4-.3-3.3.9.9-3.2-.3-.4c-1-1.6-1.5-3.5-1.5-5.1C6.2 10.6 10.6 6.2 16 6.2s9.8 4.4 9.8 9.8-4.4 9.5-9.8 9.5z"
+            fill="currentColor"
+          />
+        </svg>
+      </a>
       {user && !profileLoading && !isPending ? (
         <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-[#E5E7EB] bg-white/90 text-[#1E3A8A] backdrop-blur-lg shadow-[0_-8px_16px_rgba(0,0,0,0.08)] sm:hidden">
           <div className="mx-auto grid max-w-[640px] grid-cols-6 px-4 py-3">

@@ -2,6 +2,7 @@ import Hero from '../components/Hero.jsx'
 import SearchBar from '../components/SearchBar.jsx'
 import BatchGrid from '../components/BatchGrid.jsx'
 import ToolsGrid from '../components/ToolsGrid.jsx'
+import NoticeH from '../pages/Notice.jsx'
 
 const batches = [
   { id: 64, questions: 156 },
@@ -68,8 +69,10 @@ function Home() {
           </a>
         </div>
         <BatchGrid batches={batches} />
+        
       </section>
-
+     <NoticeH></NoticeH>
+{/* <QuestionHome></QuestionHome> */}
     </main>
   )
 }

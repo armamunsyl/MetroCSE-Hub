@@ -57,7 +57,7 @@ function BatchGrid({ batches }) {
         ))}
       </div>
       <div className="mt-4 flex justify-center sm:hidden">
-        <Link to={"/all-batch"}>
+        <Link to={"/question"}>
           <button
             type="button"
             className="rounded-full border border-[#1E3A8A] bg-white px-6 py-2 text-sm font-semibold text-[#1E3A8A] shadow-[0_8px_16px_rgba(0,0,0,0.08)]"

@@ -10,6 +10,7 @@ function UserFeedback() {
     email: '',
     batch: '',
     section: '',
+    targetRole: '',
     title: '',
     message: '',
   })
@@ -30,8 +31,8 @@ function UserFeedback() {
       toast.error('Title and message are required.')
       return
     }
-    if (!formData.email.trim() && !formData.batch) {
-      toast.error('Provide an email or select a batch.')
+    if (!formData.email.trim() && !formData.batch && !formData.targetRole) {
+      toast.error('Provide an email, select a role, or choose a batch.')
       return
     }
 
@@ -43,6 +44,7 @@ function UserFeedback() {
         targetEmail: formData.email.trim(),
         batch: formData.batch,
         section: formData.section,
+        targetRole: formData.targetRole,
       }
       const response = await fetch(`${apiBaseUrl}/admin/feedback`, {
         method: 'POST',
@@ -59,7 +61,7 @@ function UserFeedback() {
 
       const data = await response.json()
       toast.success(`Feedback sent to ${data.insertedCount || 0} user(s).`)
-      setFormData({ email: '', batch: '', section: '', title: '', message: '' })
+      setFormData({ email: '', batch: '', section: '', targetRole: '', title: '', message: '' })
     } catch (err) {
       toast.error(err?.message || 'Failed to send feedback.')
     } finally {
@@ -68,6 +70,7 @@ function UserFeedback() {
   }
 
   const isEmailMode = Boolean(formData.email.trim())
+  const isRoleMode = Boolean(formData.targetRole)
 
   return (
     <div className="space-y-6">
@@ -90,12 +93,25 @@ function UserFeedback() {
               />
             </label>
             <label className="space-y-2 text-xs font-semibold text-[#475569] sm:text-sm">
+              Target role
+              <select
+                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-sm font-normal text-[#475569]"
+                value={formData.targetRole}
+                onChange={handleChange('targetRole')}
+                disabled={isEmailMode || formData.batch}
+              >
+                <option value="">Select</option>
+                <option value="cr">CR</option>
+                <option value="moderator">Moderator</option>
+              </select>
+            </label>
+            <label className="space-y-2 text-xs font-semibold text-[#475569] sm:text-sm">
               Batch
               <select
                 className="w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-sm font-normal text-[#475569]"
                 value={formData.batch}
                 onChange={handleChange('batch')}
-                disabled={isEmailMode}
+                disabled={isEmailMode || isRoleMode}
               >
                 <option value="">Select</option>
                 {batchOptions.map((option) => (
@@ -111,7 +127,7 @@ function UserFeedback() {
                 className="w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-sm font-normal text-[#475569]"
                 value={formData.section}
                 onChange={handleChange('section')}
-                disabled={isEmailMode || !formData.batch}
+                disabled={isEmailMode || isRoleMode || !formData.batch}
               >
                 <option value="">All sections</option>
                 {sectionOptions.map((option) => (

@@ -22,11 +22,7 @@ const tools = [
     description: 'Access study materials uploaded by students',
     accent: 'tool-violet',
   },
-  {
-    title: 'GPA Calculator',
-    description: 'Estimate your semester GPA quickly',
-    accent: 'tool-amber',
-  },
+
   {
     title: 'Course Planner',
     description: 'Plan credit load and semester targets',

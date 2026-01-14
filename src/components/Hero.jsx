@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react'
 const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
 const stats = [
-  { key: 'questions', value: '1,250+', label: 'Total Questions', icon: 'Q', tone: 'stat-blue' },
-  { key: 'batches', value: '18', label: 'Total Batches', icon: 'B', tone: 'stat-green' },
-  { key: 'contributors', value: '60+', label: 'Contributors', icon: 'C', tone: 'stat-amber' },
+  { key: 'questions', value: '0+', label: 'Total Questions', icon: 'Q', tone: 'stat-blue' },
+  { key: 'batches', value: '0', label: 'Total Batches', icon: 'B', tone: 'stat-green' },
+  { key: 'contributors', value: '0+', label: 'Contributors', icon: 'C', tone: 'stat-amber' },
 ]
 
 const defaultBanners = [
