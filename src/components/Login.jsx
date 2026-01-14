@@ -10,6 +10,23 @@ function Login() {
   const [submitting, setSubmitting] = useState(false)
   const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
+  const getLoginErrorMessage = (err) => {
+    const code = String(err?.code || '').toLowerCase()
+    if (code.includes('auth/invalid-email')) {
+      return 'Email address is not valid.'
+    }
+    if (code.includes('auth/invalid-credential') || code.includes('auth/wrong-password')) {
+      return 'Email or password is incorrect.'
+    }
+    if (code.includes('auth/user-not-found')) {
+      return 'No account found with this email.'
+    }
+    if (code.includes('auth/too-many-requests')) {
+      return 'Too many attempts. Please try again later.'
+    }
+    return err?.message || 'Login failed. Please try again.'
+  }
+
   const ensureJwt = async (email) => {
     if (!email) {
       throw new Error('Missing email for token request.')
@@ -54,7 +71,7 @@ function Login() {
       const redirectTo = location.state?.from?.pathname || '/'
       navigate(redirectTo, { replace: true })
     } catch (err) {
-      setError(err?.message || 'Login failed. Please try again.')
+      setError(getLoginErrorMessage(err))
     } finally {
       setSubmitting(false)
     }
@@ -70,7 +87,7 @@ function Login() {
       const redirectTo = location.state?.from?.pathname || '/'
       navigate(redirectTo, { replace: true })
     } catch (err) {
-      setError(err?.message || 'Google sign-in failed. Please try again.')
+      setError(getLoginErrorMessage(err))
     } finally {
       setSubmitting(false)
     }

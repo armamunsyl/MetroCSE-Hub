@@ -20,17 +20,23 @@ const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const createUser = (email, password) => {
         setLoading(true);
-        return createUserWithEmailAndPassword(auth, email, password);
+        return createUserWithEmailAndPassword(auth, email, password).finally(() => {
+            setLoading(false);
+        });
     };
 
     const loginUser = (email, password) => {
         setLoading(true);
-        return signInWithEmailAndPassword(auth, email, password);
+        return signInWithEmailAndPassword(auth, email, password).finally(() => {
+            setLoading(false);
+        });
     };
 
     const googleLogin = () => {
         setLoading(true);
-        return signInWithPopup(auth, googleProvider);
+        return signInWithPopup(auth, googleProvider).finally(() => {
+            setLoading(false);
+        });
     };
 
     const updateUserProfile = (name, photo) => {
@@ -50,7 +56,9 @@ const AuthProvider = ({ children }) => {
         setLoading(true);
         localStorage.removeItem('access-token');
         window.dispatchEvent(new Event('auth-token-updated'));
-        return signOut(auth);
+        return signOut(auth).finally(() => {
+            setLoading(false);
+        });
     };
 
     useEffect(() => {

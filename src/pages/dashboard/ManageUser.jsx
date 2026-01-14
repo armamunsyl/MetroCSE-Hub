@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { AuthContext } from '../../Provider/AuthProvider.jsx'
 import DashboardSection from './DashboardSection.jsx'
+import { batchOptions, sectionOptions } from '../../constants/academicOptions.js'
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
@@ -14,9 +15,13 @@ function ManageUser() {
   const [detailError, setDetailError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
+  const [batchFilter, setBatchFilter] = useState('')
+  const [sectionFilter, setSectionFilter] = useState('')
   const [page, setPage] = useState(1)
   const perPage = 8
   const roleOptions = ['Student', 'CR', 'Moderator', 'Admin']
+  const normalizeBatch = (value) => String(value || '').replace(/^cse\s*/i, '').trim()
+  const normalizeSection = (value) => String(value || '').replace(/^sec\s*/i, '').trim().toUpperCase()
 
   useEffect(() => {
     const token = localStorage.getItem('access-token')
@@ -94,6 +99,10 @@ function ManageUser() {
   const filteredUsers = users.filter((user) => {
     const roleMatches = roleFilter === 'all' ? true : user.role?.toLowerCase() === roleFilter
     if (!roleMatches) return false
+    const batchMatches = batchFilter ? normalizeBatch(user.batch) === batchFilter : true
+    if (!batchMatches) return false
+    const sectionMatches = sectionFilter ? normalizeSection(user.section) === sectionFilter : true
+    if (!sectionMatches) return false
     if (!normalizedSearch) return true
     const fields = [
       user.studentId,
@@ -113,7 +122,7 @@ function ManageUser() {
 
   useEffect(() => {
     setPage(1)
-  }, [searchTerm, roleFilter])
+  }, [searchTerm, roleFilter, batchFilter, sectionFilter])
 
   const handleViewDetails = async (userId) => {
     const token = localStorage.getItem('access-token')
@@ -169,7 +178,7 @@ function ManageUser() {
               onChange={(event) => setSearchTerm(event.target.value)}
             />
           </label>
-          <div className="grid gap-2 sm:grid-cols-[minmax(160px,220px)_auto] sm:items-end">
+          <div className="grid gap-2 sm:grid-cols-[minmax(160px,220px)_minmax(140px,180px)_minmax(140px,180px)_auto] sm:items-end">
             <label className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">
               Role filter
               <select
@@ -182,6 +191,36 @@ function ManageUser() {
                 <option value="moderator">Moderator</option>
                 <option value="student">Student</option>
                 <option value="cr">CR</option>
+              </select>
+            </label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">
+              Batch
+              <select
+                className="mt-2 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-sm font-normal text-[#475569]"
+                value={batchFilter}
+                onChange={(event) => setBatchFilter(event.target.value)}
+              >
+                <option value="">All</option>
+                {batchOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8]">
+              Section
+              <select
+                className="mt-2 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-sm font-normal text-[#475569]"
+                value={sectionFilter}
+                onChange={(event) => setSectionFilter(event.target.value)}
+              >
+                <option value="">All</option>
+                {sectionOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </label>
             <p className="text-xs font-semibold text-[#1E3A8A]">Results: {filteredUsers.length}</p>

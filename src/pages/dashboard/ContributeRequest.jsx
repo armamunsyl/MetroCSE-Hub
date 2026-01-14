@@ -122,6 +122,7 @@ function ContributeRequest() {
     }
 
     try {
+      const normalizedAction = String(action || '').toLowerCase()
       setActionLoading(true)
       const response = await fetch(`${apiBaseUrl}/contributions/${selectedRequest._id}`, {
         method: 'PATCH',

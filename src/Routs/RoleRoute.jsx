@@ -19,7 +19,7 @@ function RoleGate({ children, allow }) {
     return children
   }
 
-  return <Navigate to="/login" state={{ from: location }} replace />
+  return <Navigate to="/dashboard" state={{ from: location }} replace />
 }
 
 export default function RoleRoute({ children, allow }) {

@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import DashboardSection from './DashboardSection.jsx'
+import { batchOptions, sectionOptions } from '../../constants/academicOptions.js'
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
-
-const batches = ['CSE 57', 'CSE 59', 'CSE 60', 'CSE 61', 'CSE 62', 'CSE 63', 'CSE 64']
-const sections = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
 function UserFeedback() {
   const [formData, setFormData] = useState({
@@ -100,9 +98,9 @@ function UserFeedback() {
                 disabled={isEmailMode}
               >
                 <option value="">Select</option>
-                {batches.map((batch) => (
-                  <option key={batch} value={batch}>
-                    {batch}
+                {batchOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
@@ -116,9 +114,9 @@ function UserFeedback() {
                 disabled={isEmailMode || !formData.batch}
               >
                 <option value="">All sections</option>
-                {sections.map((section) => (
-                  <option key={section} value={section}>
-                    Sec {section}
+                {sectionOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>

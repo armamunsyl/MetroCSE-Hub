@@ -31,6 +31,7 @@ import AddBanner from '../pages/dashboard/AddBanner.jsx'
 import Analytics from '../pages/dashboard/Analytics.jsx'
 import PendingApproval from '../pages/PendingApproval.jsx'
 import NoticeApproval from '../pages/dashboard/NoticeApproval.jsx'
+import Notifications from '../pages/dashboard/Notifications.jsx'
 
 const router = createBrowserRouter([
   {
@@ -133,6 +134,10 @@ const router = createBrowserRouter([
           {
             index: true,
             element: <DashboardOverview />,
+          },
+          {
+            path: 'notifications',
+            element: <Notifications />,
           },
           {
             path: 'profile',

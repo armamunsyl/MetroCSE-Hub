@@ -15,6 +15,7 @@ const defaultBanners = [
 
 function Hero() {
   const [banners, setBanners] = useState([])
+  const [statItems, setStatItems] = useState(stats)
 
   useEffect(() => {
     let isMounted = true
@@ -30,6 +31,42 @@ function Hero() {
       }
     }
     fetchBanners()
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+    const formatCount = (value, fallback) => {
+      const numberValue = Number(value)
+      if (!Number.isFinite(numberValue) || numberValue <= 0) return fallback
+      return `${numberValue.toLocaleString('en-US')}+`
+    }
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(`${apiBaseUrl}/stats`)
+        if (!response.ok) return
+        const data = await response.json()
+        if (!isMounted) return
+        const updatedStats = stats.map((stat) => {
+          if (stat.key === 'questions') {
+            return { ...stat, value: formatCount(data?.totalQuestions, stat.value) }
+          }
+          if (stat.key === 'batches') {
+            return { ...stat, value: formatCount(data?.totalBatches, stat.value) }
+          }
+          if (stat.key === 'contributors') {
+            return { ...stat, value: formatCount(data?.totalContributors, stat.value) }
+          }
+          return stat
+        })
+        setStatItems(updatedStats)
+      } catch (error) {
+        // Keep fallback stats on error
+      }
+    }
+    fetchStats()
     return () => {
       isMounted = false
     }
@@ -118,7 +155,7 @@ function Hero() {
           Previous year final &amp; class test questions for MU CSE students
         </p>
         <div className="mt-6 flex items-center justify-between gap-3 rounded-[18px] bg-gradient-to-r from-[#1E3A8A] to-[#DC2626] p-4 text-white shadow-[0_12px_24px_rgba(0,0,0,0.15)]">
-          {stats.map((stat) => (
+          {statItems.map((stat) => (
             <div key={stat.key} className="flex-1 text-center">
               <div className="text-base font-semibold text-white">{stat.value}</div>
               <div className="mt-1 text-[11px] opacity-80">{stat.label}</div>

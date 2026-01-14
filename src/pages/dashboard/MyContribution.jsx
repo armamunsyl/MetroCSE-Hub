@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import DashboardSection from './DashboardSection.jsx'
+import { batchOptions, sectionOptions } from '../../constants/academicOptions.js'
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
@@ -17,6 +18,10 @@ function MyContribution() {
   const [saving, setSaving] = useState(false)
   const [imageFile, setImageFile] = useState(null)
   const [imageName, setImageName] = useState('')
+  const [commentBadgeMap, setCommentBadgeMap] = useState({})
+
+  const normalizeBatch = (value) => String(value || '').replace(/^cse\s*/i, '').trim()
+  const normalizeSection = (value) => String(value || '').replace(/^sec\s*/i, '').trim()
 
   const statusValue = String(editData?.status || '').toLowerCase()
   const isPending = statusValue === 'pending'
@@ -57,6 +62,39 @@ function MyContribution() {
 
     fetchContributions()
   }, [statusFilter])
+
+  useEffect(() => {
+    let isMounted = true
+    const fetchCommentNotifications = async () => {
+      const token = localStorage.getItem('access-token')
+      if (!token) return
+      try {
+        const response = await fetch(
+          `${apiBaseUrl}/notifications?type=question_comment&unreadOnly=true&limit=100`,
+          {
+            headers: {
+              authorization: `Bearer ${token}`,
+            },
+          },
+        )
+        if (!response.ok) return
+        const data = await response.json().catch(() => null)
+        const items = Array.isArray(data?.items) ? data.items : []
+        const nextMap = items.reduce((acc, item) => {
+          const questionId = String(item?.metadata?.questionId || '')
+          if (questionId) acc[questionId] = true
+          return acc
+        }, {})
+        if (isMounted) setCommentBadgeMap(nextMap)
+      } catch (error) {
+        // Keep default state on error.
+      }
+    }
+    fetchCommentNotifications()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleViewDetails = async (contributionId) => {
     const token = localStorage.getItem('access-token')
@@ -216,7 +254,14 @@ function MyContribution() {
               <div className="divide-y divide-[#E5E7EB]">
                 {rows.map((row) => (
                   <div key={row._id} className="px-4 py-4">
-                    <div className="text-sm font-semibold text-[#0F172A]">{row.subjectName || '--'}</div>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-[#0F172A]">
+                      <span>{row.subjectName || '--'}</span>
+                      {commentBadgeMap[String(row._id)] ? (
+                        <span className="rounded-full bg-[#DC2626] px-2 py-0.5 text-[10px] font-semibold text-white">
+                          New Comment
+                        </span>
+                      ) : null}
+                    </div>
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[#64748B]">
                       <span>{row.batch ? `CSE ${row.batch}` : 'CSE --'}</span>
                       <span>{row.type || '--'}</span>
@@ -250,7 +295,16 @@ function MyContribution() {
               <tbody>
                 {rows.map((row) => (
                   <tr key={row._id} className="border-t border-[#E5E7EB]">
-                    <td className="px-4 py-3 font-semibold text-[#0F172A]">{row.subjectName || '--'}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2 font-semibold text-[#0F172A]">
+                        <span>{row.subjectName || '--'}</span>
+                        {commentBadgeMap[String(row._id)] ? (
+                          <span className="rounded-full bg-[#DC2626] px-2 py-0.5 text-[10px] font-semibold text-white">
+                            New Comment
+                          </span>
+                        ) : null}
+                      </div>
+                    </td>
                     <td className="px-4 py-3">{row.batch ? `CSE ${row.batch}` : '--'}</td>
                     <td className="px-4 py-3">{row.type || '--'}</td>
                     <td className="px-4 py-3">
@@ -328,13 +382,19 @@ function MyContribution() {
                 <div className="grid gap-3 sm:grid-cols-3">
                   <label className="space-y-1 text-xs font-semibold text-[#64748B]">
                     Batch
-                    <input
-                      type="text"
+                    <select
                       className="w-full rounded-lg border border-[#E2E8F0] px-3 py-2 text-sm"
-                      value={editData.batch || ''}
+                      value={normalizeBatch(editData.batch)}
                       onChange={handleEditChange('batch')}
                       disabled={!canEdit}
-                    />
+                    >
+                      <option value="">Select</option>
+                      {batchOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                   <label className="space-y-1 text-xs font-semibold text-[#64748B]">
                     Semester
@@ -363,13 +423,19 @@ function MyContribution() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     <label className="space-y-1 text-xs font-semibold text-[#64748B]">
                       Section
-                      <input
-                        type="text"
+                      <select
                         className="w-full rounded-lg border border-[#E2E8F0] px-3 py-2 text-sm"
-                        value={editData.section || ''}
+                        value={normalizeSection(editData.section)}
                         onChange={handleEditChange('section')}
-                      disabled={!canEdit}
-                      />
+                        disabled={!canEdit}
+                      >
+                        <option value="">Select</option>
+                        {sectionOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
                     </label>
                     <label className="space-y-1 text-xs font-semibold text-[#64748B]">
                       Faculty name

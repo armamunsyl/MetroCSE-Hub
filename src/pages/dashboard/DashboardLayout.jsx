@@ -1,9 +1,13 @@
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import useUserProfile from '../../hooks/useUserProfile.js'
+
+const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
 const menuByRole = {
   student: [
     { label: 'Dashboard Overview', to: '/dashboard' },
+    { label: 'Notifications', to: '/dashboard/notifications' },
     { label: 'My Profile', to: '/dashboard/profile' },
     { label: 'My Contribution', to: '/dashboard/my-contribution' },
     { label: 'Pending Contribution', to: '/dashboard/pending-contribution' },
@@ -13,6 +17,7 @@ const menuByRole = {
   ],
   moderator: [
     { label: 'Dashboard Overview', to: '/dashboard' },
+    { label: 'Notifications', to: '/dashboard/notifications' },
     { label: 'My Profile', to: '/dashboard/profile' },
     { label: 'My Contribution', to: '/dashboard/my-contribution' },
     { label: 'Contribute Request', to: '/dashboard/contribute-request' },
@@ -23,6 +28,7 @@ const menuByRole = {
   ],
   cr: [
     { label: 'Dashboard Overview', to: '/dashboard' },
+    { label: 'Notifications', to: '/dashboard/notifications' },
     { label: 'My Profile', to: '/dashboard/profile' },
     { label: 'My Contribution', to: '/dashboard/my-contribution' },
     { label: 'Contribute Request', to: '/dashboard/contribute-request' },
@@ -33,6 +39,7 @@ const menuByRole = {
   ],
   admin: [
     { label: 'Dashboard Overview', to: '/dashboard' },
+    { label: 'Notifications', to: '/dashboard/notifications' },
     { label: 'My Profile', to: '/dashboard/profile' },
     { label: 'Manage User', to: '/dashboard/manage-user' },
     { label: 'My Contribution', to: '/dashboard/my-contribution' },
@@ -52,6 +59,81 @@ function DashboardLayout() {
   const { profile, loading } = useUserProfile()
   const role = profile?.role?.toLowerCase() || 'student'
   const menuItems = menuByRole[role] || menuByRole.student
+  const [pendingRequests, setPendingRequests] = useState(0)
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
+  const [unreadByType, setUnreadByType] = useState({})
+  const canReview = ['admin', 'moderator', 'cr'].includes(role)
+
+  useEffect(() => {
+    let isMounted = true
+    const fetchSidebarBadges = async () => {
+      if (!profile?.email) {
+        if (isMounted) {
+          setPendingRequests(0)
+          setUnreadNotifications(0)
+        }
+        return
+      }
+      let token = localStorage.getItem('access-token')
+      if (!token && profile?.email) {
+        const jwtResponse = await fetch(`${apiBaseUrl}/jwt`, {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({ email: profile.email }),
+        })
+        if (jwtResponse.ok) {
+          const jwtData = await jwtResponse.json().catch(() => null)
+          if (jwtData?.token) {
+            localStorage.setItem('access-token', jwtData.token)
+            window.dispatchEvent(new Event('auth-token-updated'))
+            token = jwtData.token
+          }
+        }
+      }
+      if (!token) return
+      try {
+        if (canReview) {
+          const response = await fetch(`${apiBaseUrl}/dashboard/overview`, {
+            headers: {
+              authorization: `Bearer ${token}`,
+            },
+          })
+          if (response.ok) {
+            const data = await response.json().catch(() => null)
+            if (isMounted) {
+              setPendingRequests(Number(data?.stats?.pendingRequests || 0))
+            }
+          }
+        } else if (isMounted) {
+          setPendingRequests(0)
+        }
+
+        const notificationResponse = await fetch(`${apiBaseUrl}/notifications/summary`, {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        })
+        if (!notificationResponse.ok) return
+        const notificationData = await notificationResponse.json().catch(() => null)
+        if (!isMounted) return
+        setUnreadNotifications(Number(notificationData?.unreadCount || 0))
+        setUnreadByType(notificationData?.unreadByType || {})
+      } catch (error) {
+        // Keep default state on error.
+      }
+    }
+    const handleRefresh = () => {
+      fetchSidebarBadges()
+    }
+    fetchSidebarBadges()
+    window.addEventListener('notifications-read', handleRefresh)
+    return () => {
+      isMounted = false
+      window.removeEventListener('notifications-read', handleRefresh)
+    }
+  }, [canReview, profile?.email])
 
   if (loading) {
     return (
@@ -95,7 +177,25 @@ function DashboardLayout() {
                 }
               >
                 <span className="h-2 w-2 rounded-full bg-current opacity-70" />
-                {item.label}
+                <span className="flex items-center gap-2">
+                  {item.label}
+                  {item.to === '/dashboard/notifications' && unreadNotifications > 0 ? (
+                    <span className="inline-flex min-w-[24px] items-center justify-center rounded-full bg-[#DC2626] px-2 py-0.5 text-[11px] font-semibold text-white">
+                      {unreadNotifications}
+                    </span>
+                  ) : null}
+                  {item.to === '/dashboard/notice-approval' &&
+                  Number(unreadByType?.notice_request || 0) > 0 ? (
+                    <span className="inline-flex min-w-[24px] items-center justify-center rounded-full bg-[#DC2626] px-2 py-0.5 text-[11px] font-semibold text-white">
+                      {unreadByType.notice_request}
+                    </span>
+                  ) : null}
+                  {item.to === '/dashboard/contribute-request' && pendingRequests > 0 ? (
+                    <span className="inline-flex min-w-[24px] items-center justify-center rounded-full bg-[#DC2626] px-2 py-0.5 text-[11px] font-semibold text-white">
+                      {pendingRequests}
+                    </span>
+                  ) : null}
+                </span>
               </NavLink>
             ))}
           </nav>

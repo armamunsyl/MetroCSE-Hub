@@ -17,9 +17,12 @@ import { HiOutlineDocumentText } from 'react-icons/hi'
 import { AuthContext } from '../Provider/AuthProvider.jsx'
 import useUserProfile from '../hooks/useUserProfile.js'
 
+const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
+
 const dashboardMenuByRole = {
   student: [
     { label: 'Dashboard Overview', to: '/dashboard' },
+    { label: 'Notifications', to: '/dashboard/notifications' },
     { label: 'My Profile', to: '/dashboard/profile' },
     { label: 'My Contribution', to: '/dashboard/my-contribution' },
     { label: 'Pending Contribution', to: '/dashboard/pending-contribution' },
@@ -29,6 +32,7 @@ const dashboardMenuByRole = {
   ],
   moderator: [
     { label: 'Dashboard Overview', to: '/dashboard' },
+    { label: 'Notifications', to: '/dashboard/notifications' },
     { label: 'My Profile', to: '/dashboard/profile' },
     { label: 'My Contribution', to: '/dashboard/my-contribution' },
     { label: 'Contribute Request', to: '/dashboard/contribute-request' },
@@ -39,6 +43,7 @@ const dashboardMenuByRole = {
   ],
   cr: [
     { label: 'Dashboard Overview', to: '/dashboard' },
+    { label: 'Notifications', to: '/dashboard/notifications' },
     { label: 'My Profile', to: '/dashboard/profile' },
     { label: 'My Contribution', to: '/dashboard/my-contribution' },
     { label: 'Contribute Request', to: '/dashboard/contribute-request' },
@@ -49,6 +54,7 @@ const dashboardMenuByRole = {
   ],
   admin: [
     { label: 'Dashboard Overview', to: '/dashboard' },
+    { label: 'Notifications', to: '/dashboard/notifications' },
     { label: 'My Profile', to: '/dashboard/profile' },
     { label: 'Manage User', to: '/dashboard/manage-user' },
     { label: 'My Contribution', to: '/dashboard/my-contribution' },
@@ -69,6 +75,10 @@ function Navbar() {
   const { user, loading, logOut } = useContext(AuthContext)
   const { profile, loading: profileLoading } = useUserProfile()
   const [avatarUrl, setAvatarUrl] = useState('/profile-avatar.jpg')
+  const [pendingRequests, setPendingRequests] = useState(0)
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
+  const [unreadByType, setUnreadByType] = useState({})
+  const canReview = ['admin', 'moderator', 'cr'].includes(profile?.role?.toLowerCase() || '')
   const avatarAlt = user?.displayName || 'Profile'
   const handleAvatarError = useCallback(() => {
     setAvatarUrl('/profile-avatar.jpg')
@@ -119,6 +129,77 @@ function Navbar() {
   const showAuthButtons = !loading && !user
   const showPendingActions = !loading && !profileLoading && user && isPending
 
+  useEffect(() => {
+    let isMounted = true
+    const fetchPendingRequests = async () => {
+      if (!user) {
+        if (isMounted) {
+          setPendingRequests(0)
+          setUnreadNotifications(0)
+        }
+        return
+      }
+      let token = localStorage.getItem('access-token')
+      if (!token && user?.email) {
+        const jwtResponse = await fetch(`${apiBaseUrl}/jwt`, {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({ email: user.email }),
+        })
+        if (jwtResponse.ok) {
+          const jwtData = await jwtResponse.json().catch(() => null)
+          if (jwtData?.token) {
+            localStorage.setItem('access-token', jwtData.token)
+            window.dispatchEvent(new Event('auth-token-updated'))
+            token = jwtData.token
+          }
+        }
+      }
+      if (!token) return
+      try {
+        if (canReview) {
+          const response = await fetch(`${apiBaseUrl}/dashboard/overview`, {
+            headers: {
+              authorization: `Bearer ${token}`,
+            },
+          })
+          if (response.ok) {
+            const data = await response.json().catch(() => null)
+            if (isMounted) {
+              setPendingRequests(Number(data?.stats?.pendingRequests || 0))
+            }
+          }
+        } else if (isMounted) {
+          setPendingRequests(0)
+        }
+
+        const notificationResponse = await fetch(`${apiBaseUrl}/notifications/summary`, {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        })
+        if (!notificationResponse.ok) return
+        const notificationData = await notificationResponse.json().catch(() => null)
+        if (!isMounted) return
+        setUnreadNotifications(Number(notificationData?.unreadCount || 0))
+        setUnreadByType(notificationData?.unreadByType || {})
+      } catch (error) {
+        // Keep default state on error.
+      }
+    }
+    const handleRefresh = () => {
+      fetchPendingRequests()
+    }
+    fetchPendingRequests()
+    window.addEventListener('notifications-read', handleRefresh)
+    return () => {
+      isMounted = false
+      window.removeEventListener('notifications-read', handleRefresh)
+    }
+  }, [user?.email, canReview])
+
   return (
     <header
       className="fixed left-0 right-0 top-0 z-20 border-b border-[#E5E7EB] bg-white/95 backdrop-blur-lg animate-fade-up"
@@ -167,7 +248,12 @@ function Navbar() {
                 ].join(' ')
               }
             >
-              Question Bank
+              <span className="relative inline-flex items-center">
+                Question Bank
+                {Number(unreadByType?.question_published || 0) > 0 ? (
+                  <span className="absolute -right-3 -top-1 h-2 w-2 rounded-full bg-[#DC2626]" />
+                ) : null}
+              </span>
             </NavLink>
             <NavLink
               to="/notice"
@@ -178,7 +264,12 @@ function Navbar() {
                 ].join(' ')
               }
             >
-              Notice
+              <span className="relative inline-flex items-center">
+                Notice
+                {Number(unreadByType?.notice_published || 0) > 0 ? (
+                  <span className="absolute -right-3 -top-1 h-2 w-2 rounded-full bg-[#DC2626]" />
+                ) : null}
+              </span>
             </NavLink>
             <NavLink
               to="/dashboard"
@@ -189,7 +280,31 @@ function Navbar() {
                 ].join(' ')
               }
             >
-              Dashboard
+              <span className="relative inline-flex items-center">
+                Dashboard
+                {unreadNotifications > 0 ? (
+                  <span className="absolute -right-3 -top-1 h-2 w-2 rounded-full bg-[#DC2626]" />
+                ) : null}
+              </span>
+            </NavLink>
+            <NavLink
+              to="/dashboard/notifications"
+              aria-label="Notifications"
+              className={({ isActive }) =>
+                [
+                  'grid h-9 w-9 place-items-center rounded-full border border-transparent text-[#475569] transition-colors hover:text-[#1E3A8A]',
+                  isActive ? 'bg-[#E0E7FF] text-[#1E3A8A]' : '',
+                ].join(' ')
+              }
+            >
+              <span className="relative">
+                <HiOutlineBell className="h-5 w-5" />
+                {unreadNotifications > 0 ? (
+                  <span className="absolute -right-2 -top-2 inline-flex min-w-[18px] items-center justify-center rounded-full bg-[#DC2626] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                    {unreadNotifications}
+                  </span>
+                ) : null}
+              </span>
             </NavLink>
             {loading ? null : (
               <Link
@@ -355,6 +470,7 @@ function Navbar() {
                     <span className="text-base">
                       {{
                         '/dashboard': <HiOutlineSquares2X2 />,
+                        '/dashboard/notifications': <HiOutlineBell />,
                         '/dashboard/profile': <HiOutlineUser />,
                         '/dashboard/manage-user': <HiOutlineUsers />,
                         '/dashboard/my-contribution': <HiOutlineDocumentText />,
@@ -371,7 +487,25 @@ function Navbar() {
                         '/dashboard/analytics': <HiOutlineChartBarSquare />,
                       }[item.to] || <HiOutlineHome />}
                     </span>
-                    <span>{item.label}</span>
+                    <span className="flex items-center gap-2">
+                      {item.label}
+                      {item.to === '/dashboard/notifications' && unreadNotifications > 0 ? (
+                        <span className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-[#DC2626] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                          {unreadNotifications}
+                        </span>
+                      ) : null}
+                      {item.to === '/dashboard/notice-approval' &&
+                      Number(unreadByType?.notice_request || 0) > 0 ? (
+                        <span className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-[#DC2626] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                          {unreadByType.notice_request}
+                        </span>
+                      ) : null}
+                      {item.to === '/dashboard/contribute-request' && pendingRequests > 0 ? (
+                        <span className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-[#DC2626] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                          {pendingRequests}
+                        </span>
+                      ) : null}
+                    </span>
                   </NavLink>
                 ))}
               </div>

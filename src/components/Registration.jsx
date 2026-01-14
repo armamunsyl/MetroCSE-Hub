@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../Provider/AuthProvider.jsx'
+import { batchOptions, sectionOptions } from '../constants/academicOptions.js'
 import { deleteUser } from 'firebase/auth'
 import toast from 'react-hot-toast'
 
@@ -36,16 +37,6 @@ function Registration() {
     if (prevInput) {
       prevInput.focus()
     }
-  }
-
-  const handleBatchChange = (event) => {
-    const value = event.target.value.replace(/\D/g, '')
-    event.target.value = value
-  }
-
-  const handleSectionChange = (event) => {
-    const value = event.target.value.replace(/[^a-zA-Z]/g, '')
-    event.target.value = value.toUpperCase()
   }
 
   useEffect(() => {
@@ -236,29 +227,41 @@ function Registration() {
                 <label className="text-xs font-semibold text-[#334155] sm:text-sm" htmlFor="reg-batch">
                   Batch
                 </label>
-                <input
+                <select
                   id="reg-batch"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
                   name="batch"
-                  placeholder="e.g. 61"
-                  className="mt-1 w-full rounded-2xl border border-[#E2E8F0] px-3 py-1 text-xs text-[#334155] outline-none transition focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/20 sm:px-3.5 sm:py-1.5 sm:text-sm"
-                  onChange={handleBatchChange}
-                />
+                  className="mt-1 w-full rounded-2xl border border-[#E2E8F0] bg-white px-3 py-1 text-xs text-[#334155] outline-none transition focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/20 sm:px-3.5 sm:py-1.5 sm:text-sm"
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Select batch
+                  </option>
+                  {batchOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="text-xs font-semibold text-[#334155] sm:text-sm" htmlFor="reg-section">
                   Section
                 </label>
-                <input
+                <select
                   id="reg-section"
-                  type="text"
                   name="section"
-                  placeholder="A"
-                  className="mt-1 w-full rounded-2xl border border-[#E2E8F0] px-3 py-1 text-xs text-[#334155] outline-none transition focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/20 sm:px-3.5 sm:py-1.5 sm:text-sm"
-                  onChange={handleSectionChange}
-                />
+                  className="mt-1 w-full rounded-2xl border border-[#E2E8F0] bg-white px-3 py-1 text-xs text-[#334155] outline-none transition focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/20 sm:px-3.5 sm:py-1.5 sm:text-sm"
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Select section
+                  </option>
+                  {sectionOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

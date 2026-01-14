@@ -2,12 +2,13 @@ import { useContext, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { AuthContext } from '../Provider/AuthProvider.jsx'
 import toast from 'react-hot-toast'
+import { batchLabels, sectionLabels, batchOptions, sectionOptions } from '../constants/academicOptions.js'
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
 const filters = {
-  batches: ['CSE 57', 'CSE 57', 'CSE 59', 'CSE 57', 'CSE 60', 'CSE 61', 'CSE 62', 'CSE 63', 'CSE 64'],
-  sections: ['Sec A', 'Sec B', 'Sec C', 'Sec D', 'Sec E', 'Sec F', 'Sec G', 'Sec H'],
+  batches: batchLabels,
+  sections: sectionLabels,
   semesters: ['1.1', '1.2', '1.3', '2.1', '2.2', '2.3', '3.1', '3.2', '3.3', '4.1', '4.2', '4.3'],
   types: ['Final', 'CT'],
   subjects: [],
@@ -705,12 +706,18 @@ const Question = () => {
                   </label>
                   <label className="space-y-1 text-xs font-semibold text-[#475569] sm:space-y-2">
                     Batch
-                    <input
-                      type="text"
+                    <select
                       className="w-full rounded-xl border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-sm font-normal text-[#475569] sm:px-3 sm:py-2"
                       value={formData.batch}
                       onChange={handleFieldChange('batch')}
-                    />
+                    >
+                      <option value="">Select</option>
+                      {batchOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                 </div>
                 <label className="space-y-1 text-xs font-semibold text-[#475569] sm:space-y-2">
@@ -743,12 +750,18 @@ const Question = () => {
                   <>
                     <label className="space-y-1 text-xs font-semibold text-[#475569] sm:space-y-2">
                       Section
-                      <input
-                        type="text"
+                      <select
                         className="w-full rounded-xl border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-sm font-normal text-[#475569] sm:px-3 sm:py-2"
                         value={formData.section}
                         onChange={handleFieldChange('section')}
-                      />
+                      >
+                        <option value="">Select</option>
+                        {sectionOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
                     </label>
                     <label className="space-y-1 text-xs font-semibold text-[#475569] sm:col-span-2 sm:space-y-2">
                       Faculty name
