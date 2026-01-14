@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { HiOutlinePlus } from 'react-icons/hi2'
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
@@ -113,9 +114,10 @@ function Notice() {
         </div>
         <button
           type="button"
-          className="rounded-xl bg-[#1E3A8A] px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(30,58,138,0.28)] transition hover:brightness-95"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#1E3A8A] px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(30,58,138,0.28)] transition hover:brightness-95"
           onClick={() => setModalOpen(true)}
         >
+          <HiOutlinePlus className="h-4 w-4" aria-hidden="true" />
           Add Notice
         </button>
       </section>
